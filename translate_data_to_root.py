@@ -3,6 +3,12 @@ import click
 import os
 from array import array
 
+def create_array():
+    """
+    Create an array of integers with one element.
+    """
+    return array('i', [0])
+
 @click.command()
 @click.argument('inputfiles', nargs=-1, type=click.Path(exists=True))
 def main(inputfiles):
@@ -26,54 +32,38 @@ def main(inputfiles):
     # H channel L1Counter Type BCID
     # D channel EA Row Col Toa Tot Cal
     # T channel status hits CRC
-    # EH
-    version = array('i', [0])
-    event_number = array('i', [0])
-    hits_count = array('i', [0])
-    num_words = array('i', [0])
-    # H
-    channel_h = array('i', [0])
-    l1counter = array('i', [0])
-    type = array('i', [0])
-    bcid = array('i', [0])
-    # D
-    channel_d = array('i', [0])
-    ea = array('i', [0])
-    col = array('i', [0])
-    row = array('i', [0])
-    toa_code = array('i', [0])
-    tot_code = array('i', [0])
-    cal = array('i', [0])
-    # T
-    channel_t = array('i', [0])
-    status = array('i', [0])
-    hits_t = array('i', [0])
-    crc = array('i', [0])
+
+    # Variables
+    variables = {
+        # EH
+        'version': create_array(),
+        'event_number': create_array(),
+        'hits_count': create_array(),
+        'num_words': create_array(),
+        # H
+        'channel_h': create_array(),
+        'l1counter': create_array(),
+        'type': create_array(),
+        'bcid': create_array(),
+        # D
+        'channel_d': create_array(),
+        'ea': create_array(),
+        'col': create_array(),
+        'row': create_array(),
+        'toa_code': create_array(),
+        'tot_code': create_array(),
+        'cal': create_array(),
+        # T
+        'channel_t': create_array(),
+        'status': create_array(),
+        'hits_t': create_array(),
+        'crc': create_array()
+    }
+
     # Create tree
     hits_tree = ROOT.TTree("Hits", "Hits")
-    # EH
-    hits_tree.Branch("version", version, "version/I")
-    hits_tree.Branch("event_number", event_number, "event_number/I")
-    hits_tree.Branch("hits_count", hits_count, "hits_count/I")
-    hits_tree.Branch("num_words", num_words, "num_words/I")
-    # H
-    hits_tree.Branch("channel_h", channel_h, "channel/I")
-    hits_tree.Branch("l1counter", l1counter, "l1counter/I")
-    hits_tree.Branch("type", type, "type/I")
-    hits_tree.Branch("bcid", bcid, "bcid/I")
-    # D
-    hits_tree.Branch("channel_d", channel_d, "channel_d/I")
-    hits_tree.Branch("ea", ea, "ea/I")
-    hits_tree.Branch("col", col, "col/I")
-    hits_tree.Branch("row", row, "row/I")
-    hits_tree.Branch("toa_code", toa_code, "toa_code/I")
-    hits_tree.Branch("tot_code", tot_code, "tot_code/I")
-    hits_tree.Branch("cal", cal, "cal/I")
-    # T
-    hits_tree.Branch("channel_t", channel_t, "channel_t/I")
-    hits_tree.Branch("status", status, "status/I")
-    hits_tree.Branch("hits_t", hits_t, "hits_t/I")
-    hits_tree.Branch("crc", crc, "crc/I")
+    for var_name, var in variables.items():
+        hits_tree.Branch(var_name, var, f"{var_name}/I")
 
 
     for inputfile in inputfiles:
@@ -81,38 +71,25 @@ def main(inputfiles):
             lines = f.readlines()
             iline = 0
             while iline < (len(lines)):
-                if lines[iline][0:2] == 'EH' and lines[iline+1][0] == 'H' and lines[iline+2][0]== 'D' and lines[iline+3][0] == 'T':
-                    line_eh = lines[iline]
-                    line_h = lines[iline+1]
-                    line_d = lines[iline+2]
-                    line_t = lines[iline+3]
+                if (
+                    lines[iline][0:2] == 'EH' and 
+                    lines[iline+1][0] == 'H' and 
+                    lines[iline+2][0]== 'D' and 
+                    lines[iline+3][0] == 'T'
+                ):
                     # EH
-                    _, iversion, ievent_number, ihits_count, inum_words = line_eh.strip().split()
-                    iversion, ievent_number, ihits_count, inum_words = int(iversion), int(ievent_number), int(ihits_count), int(inum_words)
+                    variables['version'][0], variables['event_number'][0], variables['hits_count'][0], variables['num_words'][0] = map(int, lines[iline].split()[1:])
                     # H
-                    _, ichannel_h, il1counter, itype, ibcid = line_h.strip().split()
-                    ichannel_h, il1counter, itype, ibcid = int(ichannel_h), int(il1counter), int(itype), int(ibcid)
+                    variables['channel_h'][0], variables['l1counter'][0], variables['type'][0], variables['bcid'][0] = map(int, lines[iline + 1].split()[1:])
                     # D
-                    _, ichannel_d, iea, irow, icol, itoa_code, itot_code, ical = line_d.strip().split()
-                    ichannel_d, iea, irow, icol, itoa_code, itot_code, ical = int(ichannel_d), int(iea), int(irow), int(icol), int(itoa_code), int(itot_code), int(ical)
+                    variables['channel_d'][0], variables['ea'][0], variables['row'][0], variables['col'][0], variables['toa_code'][0], variables['tot_code'][0], variables['cal'][0] = map(int, lines[iline + 2].split()[1:])
                     # T
-                    _, ichannel_t, istatus, ihits_t, icrc = line_t.strip().split()
-                    ichannel_t, istatus, ihits_t, icrc = int(ichannel_t), int(istatus), int(ihits_t), int(icrc)
-
-                    # Save data to root file
-                    # Event header variables
-                    version[0], event_number[0], hits_count[0], num_words[0] = iversion, ievent_number, ihits_count, inum_words
-                    # Header variables
-                    channel_h[0], l1counter[0], type[0], bcid[0] = ichannel_h, il1counter, itype, ibcid
-                    # Data variables
-                    channel_d[0], ea[0], row[0], col[0], toa_code[0], tot_code[0], cal[0] = ichannel_d, iea, irow, icol, itoa_code, itot_code, ical
-                    # Trailer variables
-                    channel_t[0], status[0], hits_t[0], crc[0] = ichannel_t, istatus, ihits_t, icrc
+                    variables['channel_t'][0], variables['status'][0], variables['hits_t'][0], variables['crc'][0] = map(int, lines[iline + 3].split()[1:])
 
                     hits_tree.Fill()
-                    iline += 4
+                    iline += 4 # Skip to next block
                 else:
-                    iline += 1
+                    iline += 1 # Skip to next line
     hits_tree.Write()
     hits.Write()
     hits.Close()
