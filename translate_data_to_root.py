@@ -4,29 +4,28 @@ import os
 from array import array
 
 @click.command()
-@click.argument('inputfiles', nargs=-1)
+@click.argument('inputfiles', nargs=-1, type=click.Path(exists=True))
 def main(inputfiles):
     """
     Process TOT and TOA data from input files and generate a 2D hit map.
     
     INPUTFILES: List of input files to process.
     """
-    input_name = inputfiles[0].split('/')
-    try:
-        os.mkdir("Root_files")
-    except FileExistsError:
-        pass
+    # Create folder to save root files
+    os.makedirs("Root_files", exist_ok=True)
 
-    folder = inputfiles[0].split('/')[0].split('_')[1]
+    f = inputfiles[0]
+    
+    folder = f.split('/')[0].split('_')[1]
     # Separate date and time with _ 
     folder = folder[:4] + '_' + folder[4:6] + '_' + folder[6:8] + '-' + folder[8:10]+ '_' + folder[10:12] + '_' + folder[12:]
+    hits = ROOT.TFile(f"Root_files/{folder}.root", "RECREATE")
 
     # Format of lines:
     # EH version event_number hits_count num_words
     # H channel L1Counter Type BCID
     # D channel EA Row Col Toa Tot Cal
     # T channel status hits CRC
-    hits = ROOT.TFile(f"Root_files/{folder}.root", "RECREATE")
     # EH
     version = array('i', [0])
     event_number = array('i', [0])
@@ -50,7 +49,6 @@ def main(inputfiles):
     status = array('i', [0])
     hits_t = array('i', [0])
     crc = array('i', [0])
-
     # Create tree
     hits_tree = ROOT.TTree("Hits", "Hits")
     # EH
@@ -77,26 +75,31 @@ def main(inputfiles):
     hits_tree.Branch("hits_t", hits_t, "hits_t/I")
     hits_tree.Branch("crc", crc, "crc/I")
 
+
     for inputfile in inputfiles:
         with open(inputfile) as f:
             lines = f.readlines()
-            for l in lines:
-                save_data = False
-                if l[0] == 'E' and l[1] == 'H':
-                    _, iversion, ievent_number, ihits_count, inum_words = l.strip().split()
+            iline = 0
+            while iline < (len(lines)):
+                if lines[iline][0:2] == 'EH' and lines[iline+1][0] == 'H' and lines[iline+2][0]== 'D' and lines[iline+3][0] == 'T':
+                    line_eh = lines[iline]
+                    line_h = lines[iline+1]
+                    line_d = lines[iline+2]
+                    line_t = lines[iline+3]
+                    # EH
+                    _, iversion, ievent_number, ihits_count, inum_words = line_eh.strip().split()
                     iversion, ievent_number, ihits_count, inum_words = int(iversion), int(ievent_number), int(ihits_count), int(inum_words)
-                elif l[0] == 'H':
-                    _, ichannel_h, il1counter, itype, ibcid = l.strip().split()
+                    # H
+                    _, ichannel_h, il1counter, itype, ibcid = line_h.strip().split()
                     ichannel_h, il1counter, itype, ibcid = int(ichannel_h), int(il1counter), int(itype), int(ibcid)
-                elif l[0] == 'D':
-                    save_data = True
-                    _, ichannel_d, iea, irow, icol, itoa_code, itot_code, ical = l.strip().split()
+                    # D
+                    _, ichannel_d, iea, irow, icol, itoa_code, itot_code, ical = line_d.strip().split()
                     ichannel_d, iea, irow, icol, itoa_code, itot_code, ical = int(ichannel_d), int(iea), int(irow), int(icol), int(itoa_code), int(itot_code), int(ical)
-                elif l[0] == 'T':
-                    _, ichannel_t, istatus, ihits_t, icrc = l.strip().split()
+                    # T
+                    _, ichannel_t, istatus, ihits_t, icrc = line_t.strip().split()
                     ichannel_t, istatus, ihits_t, icrc = int(ichannel_t), int(istatus), int(ihits_t), int(icrc)
-                
-                if save_data:
+
+                    # Save data to root file
                     # Event header variables
                     version[0], event_number[0], hits_count[0], num_words[0] = iversion, ievent_number, ihits_count, inum_words
                     # Header variables
@@ -107,6 +110,9 @@ def main(inputfiles):
                     channel_t[0], status[0], hits_t[0], crc[0] = ichannel_t, istatus, ihits_t, icrc
 
                     hits_tree.Fill()
+                    iline += 4
+                else:
+                    iline += 1
     hits_tree.Write()
     hits.Write()
     hits.Close()
