@@ -21,6 +21,8 @@ def main(inputfiles):
     os.makedirs("Root_files", exist_ok=True)
 
     f = inputfiles[0]
+    if f.split('.')[-1] != 'nem':
+        raise ValueError(f"Input file must have .nem extension and it has .{f.split('.')[-1]}")  
     
     folder = f.split('/')[0].split('_')[1]
     # Separate date and time with _ 
@@ -78,13 +80,18 @@ def main(inputfiles):
                     lines[iline+3][0] == 'T'
                 ):
                     # EH
-                    variables['version'][0], variables['event_number'][0], variables['hits_count'][0], variables['num_words'][0] = map(int, lines[iline].split()[1:])
+                    variables['version'][0], variables['event_number'][0], variables['hits_count'][0], variables['num_words'][0] \
+                        = map(int, lines[iline].split()[1:])
                     # H
-                    variables['channel_h'][0], variables['l1counter'][0], variables['type'][0], variables['bcid'][0] = map(int, lines[iline + 1].split()[1:])
+                    variables['channel_h'][0], variables['l1counter'][0], variables['type'][0], variables['bcid'][0] \
+                        = map(int, lines[iline + 1].split()[1:])
                     # D
-                    variables['channel_d'][0], variables['ea'][0], variables['row'][0], variables['col'][0], variables['toa_code'][0], variables['tot_code'][0], variables['cal'][0] = map(int, lines[iline + 2].split()[1:])
+                    variables['channel_d'][0], variables['ea'][0], variables['row'][0], variables['col'][0], \
+                        variables['toa_code'][0], variables['tot_code'][0], variables['cal'][0] \
+                        = map(int, lines[iline + 2].split()[1:])
                     # T
-                    variables['channel_t'][0], variables['status'][0], variables['hits_t'][0], variables['crc'][0] = map(int, lines[iline + 3].split()[1:])
+                    variables['channel_t'][0], variables['status'][0], variables['hits_t'][0], variables['crc'][0] \
+                        = map(int, lines[iline + 3].split()[1:])
 
                     hits_tree.Fill()
                     iline += 4 # Skip to next block
@@ -95,4 +102,7 @@ def main(inputfiles):
     hits.Close()
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except ValueError as e:
+        print(f"\033[91mError: {e}\033[0m")
