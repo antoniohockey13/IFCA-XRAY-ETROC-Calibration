@@ -53,8 +53,8 @@ def main(inputfiles):
     for file in inputfiles:
         # Separate folder and name of the file
         folder, name = file.rsplit("/", 1)
-        print(folder, name)
-
+        if name.split('.')[-1] != 'root':
+            raise ValueError(f"Input file must have .root extension and it has .{name.split('.')[-1]}")
         # Open file and create RDataFrame
         f = ROOT.TFile(file)
         df = ROOT.RDataFrame("Hits", f)
@@ -90,4 +90,7 @@ def main(inputfiles):
         df_filtered.Snapshot(tree_name, file_name, columns)
         
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except ValueError as e:
+        print(f"\033[91mError: {e}\033[0m")
