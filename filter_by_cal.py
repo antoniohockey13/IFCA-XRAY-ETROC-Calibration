@@ -39,8 +39,9 @@ def plot_cal_histograms(df, title = "Cal values before filtering"):
         max_cal_bins[col] = hist.GetMaximumBin()
 
     canvas.Update()
-    # Keep the canvas open until user input
-    input("Press Enter to continue...")  
+    if not omit_plots:
+        # Keep the canvas open until user input
+        input("Press Enter to continue...")  
     return max_cal_bins
 
 @click.command()
