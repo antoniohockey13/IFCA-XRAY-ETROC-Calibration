@@ -27,7 +27,9 @@ def hit_map(df):
     hit_map.Draw("colz")
     c.Update()
     c.Draw()
-    input("Press enter to continue...")
+    if not omit_plots:
+        # Keep the canvas open until user input
+        input("Press enter to continue...")
 
 def ToT(df):
     """
@@ -87,6 +89,34 @@ def ToA(df):
         # Keep the canvas open until user input
         input("Press Enter to continue...")
 
+def t_bin(df):
+    """
+    Plot the t_bin of the ETROC
+    
+    Args:
+        df (ROOT.RDataFrame): RDataFrame with the hits
+    """
+    canvas = ROOT.TCanvas()
+    canvas.Divide(2, 2)
+
+    histograms = []
+
+    for col, pos in SENSOR_POS.items():
+        canvas.cd(pos)
+        hist = df.Filter(f"row==15 && col=={col}").Histo1D(
+            ("t_bin", f"Column {col}", 200, 0., 0.031), "t_bin"
+        )
+        hist.GetXaxis().SetTitle("t_bin")
+        hist.GetYaxis().SetTitle(f"Counts col={col}")
+        hist.SetTitle(f"Column {col}")
+        hist.Draw()
+
+        histograms.append(hist)
+
+    canvas.Update()
+    if not omit_plots:
+        # Keep the canvas open until user input
+        input("Press Enter to continue...")
 
 @click.command()
 @click.argument('inputfile', nargs=1)
@@ -106,6 +136,9 @@ def main(inputfile):
 
     # Plot the ToA
     ToA(df)
+
+    # Plot the t_bin
+    # t_bin(df)
 
 if __name__ == "__main__":
     try:
