@@ -10,10 +10,6 @@ sifca_utils.plotting.set_sifca_style()
 omit_plots = False
 ROOT.gROOT.SetBatch(omit_plots)
 
-# Map sensor positions
-# SENSOR_POS = {"6": 1, "7": 3, "8": 4, "9": 2}
-
-
 def plot_cal_histograms(df, title = "Cal values before filtering"):
     """
     Plot histograms for CAL values and return the max bin for each sensor column.
@@ -36,19 +32,6 @@ def plot_cal_histograms(df, title = "Cal values before filtering"):
 
         histograms.append(hist)
         max_cal_bins[i] = hist.GetMaximumBin()
-    
-    # for col, pos in SENSOR_POS.items():
-    #     canvas.cd(pos)
-    #     hist = df.Filter(f"row==15 && col=={col}").Histo1D(
-    #         ("cal", f"Column {col}", 1024, 0., 1023), "cal"
-    #     )
-    #     hist.GetXaxis().SetTitle("Cal")
-    #     hist.GetYaxis().SetTitle(f"Counts col={col}")
-    #     hist.SetTitle(f"Column {col}")
-    #     hist.Draw()
-
-    #     histograms.append(hist)
-    #     max_cal_bins[col] = hist.GetMaximumBin()
 
     canvas.Update()
     if not omit_plots:
