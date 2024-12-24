@@ -1,4 +1,3 @@
-import sifca_utils.plotting
 import ROOT
 import click
 import sifca_utils
@@ -39,18 +38,17 @@ def ToT(df):
         df (ROOT.RDataFrame): RDataFrame with the hits
     """
     canvas = ROOT.TCanvas()
-    canvas.Divide(2, 2)
+    canvas.Divide(2, 1)
 
     histograms = []
-
-    for col, pos in SENSOR_POS.items():
-        canvas.cd(pos)
-        hist = df.Filter(f"row==15 && col=={col}").Histo1D(
-            ("ToT", f"Column {col}", 150, 0., 7.), "ToT"
+    for i in range(2):
+        canvas.cd(i+1)
+        hist = df.Filter(f"Analogical_HV == {i}").Histo1D(
+            ("ToT", f"Analogical HV {i}", 150, 0., 7.), "ToT"
         )
         hist.GetXaxis().SetTitle("ToT/ns")
-        hist.GetYaxis().SetTitle(f"Counts col={col}")
-        hist.SetTitle(f"Column {col}")
+        hist.GetYaxis().SetTitle(f"Counts")
+        hist.SetTitle(f"Analogical HV = {i}")
         hist.Draw()
 
         histograms.append(hist)
@@ -68,18 +66,17 @@ def ToA(df):
         df (ROOT.RDataFrame): RDataFrame with the hits
     """
     canvas = ROOT.TCanvas()
-    canvas.Divide(2, 2)
+    canvas.Divide(2, 1)
 
     histograms = []
-
-    for col, pos in SENSOR_POS.items():
-        canvas.cd(pos)
-        hist = df.Filter(f"row==15 && col=={col}").Histo1D(
-            ("ToA", f"Column {col}", 75, 0., 14.), "ToA"
+    for i in range(2):
+        canvas.cd(i+1)
+        hist = df.Filter(f"Analogical_HV == {i}").Histo1D(
+            ("ToA", f"Analogical HV {i}", 75, 0., 14.), "ToA"
         )
         hist.GetXaxis().SetTitle("ToA/ns")
-        hist.GetYaxis().SetTitle(f"Counts col={col}")
-        hist.SetTitle(f"Column {col}")
+        hist.GetYaxis().SetTitle(f"Counts")
+        hist.SetTitle(f"Analogical HV = {i}")
         hist.Draw()
 
         histograms.append(hist)
@@ -97,18 +94,18 @@ def t_bin(df):
         df (ROOT.RDataFrame): RDataFrame with the hits
     """
     canvas = ROOT.TCanvas()
-    canvas.Divide(2, 2)
+    canvas.Divide(2, 1)
 
     histograms = []
 
-    for col, pos in SENSOR_POS.items():
-        canvas.cd(pos)
-        hist = df.Filter(f"row==15 && col=={col}").Histo1D(
-            ("t_bin", f"Column {col}", 200, 0., 0.031), "t_bin"
+    for i in range(2):
+        canvas.cd(i+1)
+        hist = df.Filter(f"Analogical_HV == {i}").Histo1D(
+            ("t_bin", f"Analogical HV {i}", 1500, 0., 0.05), "t_bin"
         )
-        hist.GetXaxis().SetTitle("t_bin")
-        hist.GetYaxis().SetTitle(f"Counts col={col}")
-        hist.SetTitle(f"Column {col}")
+        hist.GetXaxis().SetTitle("t_bin/ns")
+        hist.GetYaxis().SetTitle(f"Counts")
+        hist.SetTitle(f"Analogical HV = {i}")
         hist.Draw()
 
         histograms.append(hist)
@@ -138,7 +135,7 @@ def main(inputfile):
     ToA(df)
 
     # Plot the t_bin
-    # t_bin(df)
+    t_bin(df)
 
 if __name__ == "__main__":
     try:
