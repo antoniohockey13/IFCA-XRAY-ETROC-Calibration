@@ -29,6 +29,7 @@ def hit_map(df):
     if not omit_plots:
         # Keep the canvas open until user input
         input("Press enter to continue...")
+    return hit_map
 
 def ToT(df):
     """
@@ -42,14 +43,18 @@ def ToT(df):
 
     histograms = []
     for i in range(2):
+        bin_size = 0.033
+        min_tot = 0
+        max_tot = 7
+        bin_number = int((max_tot-min_tot)/bin_size)
         canvas.cd(i+1)
         hist = df.Filter(f"Analogical_HV == {i}").Histo1D(
-            ("ToT", f"Analogical HV {i}", 150, 0., 7.), "ToT"
+            ("ToT", f"Analogical HV {i}", bin_number, min_tot, max_tot), "ToT"
         )
         hist.GetXaxis().SetTitle("ToT/ns")
         hist.GetYaxis().SetTitle(f"Counts")
         hist.SetTitle(f"Analogical HV = {i}")
-        hist.Draw()
+        hist.Draw("")
 
         histograms.append(hist)
 
@@ -57,6 +62,7 @@ def ToT(df):
     if not omit_plots:
         # Keep the canvas open until user input
         input("Press Enter to continue...")  
+    return histograms
 
 def ToA(df):
     """
@@ -85,6 +91,8 @@ def ToA(df):
     if not omit_plots:
         # Keep the canvas open until user input
         input("Press Enter to continue...")
+    return histograms
+
 
 def t_bin(df):
     """
@@ -135,7 +143,7 @@ def main(inputfile):
     ToA(df)
 
     # Plot the t_bin
-    t_bin(df)
+    # t_bin(df)
 
 if __name__ == "__main__":
     try:
