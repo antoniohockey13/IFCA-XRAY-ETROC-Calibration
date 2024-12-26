@@ -24,7 +24,7 @@ def main(inputfiles):
     if f.split('.')[-1] != 'nem':
         raise ValueError(f"Input file must have .nem extension and it has .{f.split('.')[-1]}")  
     
-    folder = f.split('/')[0].split('_')[1]
+    folder = f.split('/')[1].split('_')[1]
     # Separate date and time with _ 
     folder = folder[:4] + '_' + folder[4:6] + '_' + folder[6:8] + '-' + folder[8:10]+ '_' + folder[10:12] + '_' + folder[12:]
     hits = ROOT.TFile(f"Root_files/{folder}.root", "RECREATE")
