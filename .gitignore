@@ -2,3 +2,5 @@ commisioning*
 Root_files/*
 Dimensiones/
 *.pdf
+__pycache__
+Data/
