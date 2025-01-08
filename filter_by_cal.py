@@ -17,19 +17,19 @@ def plot_cal_histograms(df, title = "Cal values before filtering"):
     """
     canvas = ROOT.TCanvas("c", title)
     canvas.Divide(2, 1)
-
     max_cal_bins = {}
     histograms = []
     for i in range(2):
         canvas.cd(i+1)
+        ROOT.gPad.SetLogy()
         hist = df.Filter(f"Analogical_HV == {i}").Histo1D(
             ("cal", f"Analogical_HV = {i}", 1024, 0., 1023), "cal"
             )
+        
         hist.GetXaxis().SetTitle("Cal")
         hist.GetYaxis().SetTitle(f"Counts Analogical HV={i}")
         hist.SetTitle(f"Analogical HV = {i}")
         hist.Draw()
-
         histograms.append(hist)
         max_cal_bins[i] = hist.GetMaximumBin()
 
@@ -58,13 +58,15 @@ def main(inputfiles):
         df = df.Define("Analogical_HV", "floor(col/8)")
         # Draw histogram with Cal values and get max cal bin for each sensor column
         max_cal = plot_cal_histograms(df=df, title="Cal values before filtering")
-
+        print(max_cal)
         # Filter and define new columns
         # Build filter expression
         condition = []
+        # DANGER: CAL VALUE
+        filter_condition = 0.5
+        print(f"\033[91mFILTER CONDITION = {filter_condition}\033[0m")
         for i in max_cal:
-            condition.append(f"Analogical_HV == {i} && abs(cal-{max_cal[i]})<2.5")
-
+            condition.append(f"Analogical_HV == {i} && abs(cal-{max_cal[i]})<{filter_condition}")
         filter_expr = " || ".join(condition)
 
         # Apply filter
@@ -86,7 +88,7 @@ def main(inputfiles):
 
         # Save filtered data
         tree_name = "Hits"
-        file_name = f"{folder}/Filtered_{name}"
+        file_name = f"{folder}/Filtered_{filter_condition}-{name}"
         columns = {"row", "col", "cal", "ToA", "ToT", "t_bin", "Analogical_HV"}
         df_filtered.Snapshot(tree_name, file_name, columns)
         print(f"New ROOT file saved in {file_name}")
