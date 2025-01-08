@@ -42,13 +42,20 @@ def ToT(df):
     canvas.Divide(2, 1)
 
     histograms = []
+    
     for i in range(2):
-        bin_size = 0.033
-        min_tot = 0
-        max_tot = 7
+        # Delta ToT depends on the floor of the ToT_CODE, it can be 2*t_bin or t_bin, in most of the cases it is 2*t_bin
+        # Filter df to select data with the same Cal
+        df_i = df.Filter(f"Analogical_HV == {i}")
+        t_bin = df_i.Mean("t_bin").GetValue()
+        bin_size = 2*t_bin
+        min_tot = -bin_size/2
+        max_tot = 7+bin_size/2
         bin_number = int((max_tot-min_tot)/bin_size)
+        print(f"Number of bins: {bin_number}")
+        
         canvas.cd(i+1)
-        hist = df.Filter(f"Analogical_HV == {i}").Histo1D(
+        hist = df_i.Histo1D(
             ("ToT", f"Analogical HV {i}", bin_number, min_tot, max_tot), "ToT"
         )
         hist.GetXaxis().SetTitle("ToT/ns")
@@ -76,9 +83,18 @@ def ToA(df):
 
     histograms = []
     for i in range(2):
+        # Delta ToA is t_bin
+        # Filter df to select data with the same Cal
+        df_i = df.Filter(f"Analogical_HV == {i}")
+        t_bin = df_i.Mean("t_bin").GetValue()
+        bin_size = 2*t_bin
+        min_toa = -bin_size/2
+        max_toa = 14+bin_size/2
+        bin_number = int((max_toa-min_toa)/bin_size)
+        print(f"Number of bins: {bin_number}")
         canvas.cd(i+1)
-        hist = df.Filter(f"Analogical_HV == {i}").Histo1D(
-            ("ToA", f"Analogical HV {i}", 75, 0., 14.), "ToA"
+        hist = df_i.Histo1D(
+            ("ToA", f"Analogical HV {i}", bin_number, min_toa, max_toa), "ToA"
         )
         hist.GetXaxis().SetTitle("ToA/ns")
         hist.GetYaxis().SetTitle(f"Counts")
