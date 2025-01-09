@@ -8,12 +8,23 @@ sifca_utils.plotting.set_sifca_style()
 # # ToT measured in TFM 35kV data, Filtered_2024_06_13-08_37_11.root, analogical = 0
 # tot_peaks = [3.4504716981132075, 2.2948113207547167, 3.714622641509434]
 
-# ToT measured in TFM 35kV data, Filtered_0.5-2024_06_13-08_37_11.root analogical = 1
-tot_peaks = [3.518716556249204, 3.331550993757167, 3.7433152312396487, 3.106952318766722] 
-tot_error = 0.0374251497005988
+# # ToT measured in TFM 35kV data, Filtered_0.5-2024_06_13-08_37_11.root analogical = 1
+# tot_peaks = [3.518716556249204, 3.331550993757167, 3.7433152312396487, 3.106952318766722] 
+# tot_error = 0.0374251497005988
 
-# Energy peaks in simulation 
-energy_peaks =  [8.366336633663366, 11.303630363036303, 9.686468646864686, 9.95049504950495] 
+# ToT measured in TFM 35kV data, Filtered_2.5_Same_Cal-2024_06_13-08_37_11.root analogical = 0
+tot_peaks = [3.046297843891024, 3.4351854062701457, 3.6944437811895603]
+tot_error = 0.03238341968911917
+
+# ToT measured in TFM 35kV data, Filtered_2.5_Same_Cal-2024_06_13-08_37_11.root analogical = 1
+# tot_peaks = [3.331550993757167, 3.518716556249204, 3.7433152312396487]
+# tot_error = 0.0374251497005988
+
+# Energy peaks in simulation
+if len(tot_peaks) == 3:
+    energy_peaks = [8.366336633663366, 11.303630363036303, 9.686468646864686]
+if len(tot_peaks) == 4:
+    energy_peaks =  [8.366336633663366, 11.303630363036303, 9.686468646864686, 9.95049504950495] 
 energy_error = 0.033
 def main():
     # Order list of peaks
@@ -36,8 +47,8 @@ def main():
     graph.Draw("AP")
 
     # Fit the points to a line
-    # fit = ROOT.TF1("fit", "[0]*x+[1]", 0, 15)
-    fit = ROOT.TF1("fit", "[0]*x", 0, 15)
+    fit = ROOT.TF1("fit", "[0]*x+[1]", 0, 15)
+    # fit = ROOT.TF1("fit", "[0]*x", 0, 15)
     # Fit with errors
     graph.Fit(fit, "S")
     fit.Draw("same")
@@ -55,7 +66,6 @@ def main():
     # Add text to the plot
     text = ROOT.TLatex()
     text.SetTextSize(0.03)
-    # text.DrawLatex(0.5, 4.2, f"Fit: ToT = ({fit.GetParameter(0):.4f} \pm {fit.GetParError(0):.4f}) ns/keV * E")
     text.DrawLatex(0.5, 4.2, f"Fit: ToT = ({fit.GetParameter(0):.4f} \pm {fit.GetParError(0):.4f}) ns/keV * E "\
                 f"+ ({fit.GetParameter(1):.4f} \pm {fit.GetParError(1):.4f}) ns")
     text.DrawLatex(0.5, 4.5, f"R^2: {r2:.2f}")
