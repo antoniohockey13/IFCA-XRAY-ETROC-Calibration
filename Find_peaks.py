@@ -23,8 +23,10 @@ def ToT(df):
         df_i = df.Filter(f"Analogical_HV == {i}")
         t_bin = df_i.Mean("t_bin").GetValue()
         bin_size = 2*t_bin
+        # Use -bin_size/2 ti centre the first bin
         min_tot = -bin_size/2
         max_tot = 7+bin_size/2
+        # If I do the int() approx the bin_number so change the bin_size little bit
         bin_number = int((max_tot-min_tot)/bin_size)
         print(f"Size of the bins: {bin_size}")
         hist = df_i.Histo1D(
