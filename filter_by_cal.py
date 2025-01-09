@@ -2,9 +2,17 @@ import sifca_utils.plotting
 import ROOT
 import click
 import sifca_utils
+import os
 
 sifca_utils.plotting.set_sifca_style()
 
+# CONSTANTS 
+SAME_CAL = True
+# DANGER: CAL VALUE
+filter_condition = 2.5
+# Define store variables
+store_tree_name = "Hits"
+store_columns = {"row", "col", "cal", "ToA", "ToT", "t_bin", "Analogical_HV"}
 
 # Set ROOT to batch mode if plots are omitted
 omit_plots = False
@@ -15,6 +23,7 @@ def plot_cal_histograms(df, title = "Cal values before filtering"):
     Plot histograms for CAL values and return the max bin for each sensor column.
     Cal goes from 0 to 1023 in integer values.
     """
+    print("Create canvas")
     canvas = ROOT.TCanvas("c", title)
     canvas.Divide(2, 1)
     max_cal_bins = {}
@@ -22,10 +31,12 @@ def plot_cal_histograms(df, title = "Cal values before filtering"):
     for i in range(2):
         canvas.cd(i+1)
         ROOT.gPad.SetLogy()
+        print(f"Analogical HV = {i}")
+        print(df.GetColumnNames())
         hist = df.Filter(f"Analogical_HV == {i}").Histo1D(
             ("cal", f"Analogical_HV = {i}", 1024, 0., 1023), "cal"
             )
-        
+        print(hist.GetEntries())
         hist.GetXaxis().SetTitle("Cal")
         hist.GetYaxis().SetTitle(f"Counts Analogical HV={i}")
         hist.SetTitle(f"Analogical HV = {i}")
@@ -39,6 +50,95 @@ def plot_cal_histograms(df, title = "Cal values before filtering"):
         input("Press Enter to continue...")  
     return max_cal_bins
 
+
+def filter_with_same_cal(df, max_cal, filter_condition):
+    """
+    Filter the data with the same cal value for all the events
+
+    Parameters
+    ----------
+    df : ROOT.RDataFrame
+        Dataframe to filter
+    max_cal : dict
+        Dictionary with the maximum cal value for each sensor column
+    filter_condition : float
+        Maximum difference between the cal value and the maximum cal value for each sensor column
+    
+    Returns
+    -------
+    df_filtered : ROOT.RDataFrame
+        Filtered dataframe
+    """
+    # Filter and define new columns
+    print(f"\033[91mFILTER CONDITION = {filter_condition}\033[0m")
+    for i in max_cal:
+        filter_expr = (f"Analogical_HV == {i} && abs(cal-{max_cal[i]})<{filter_condition}")
+
+        # Apply filter
+        df_filtered_i = (df.Filter(filter_expr, "Cal cut"))
+        print(df_filtered_i.Report().Print())
+
+        # Define ToT and ToA in ns
+        # t_bin = T3/Cal; T3 = 3.125 ns
+        # TOA = t_bin* TOA_Code
+        # TOT = (2*TOT_Code - floor(TOT_Code/32))*t_bin
+
+        # Define new columns
+        df_filtered_i = (df_filtered_i
+                        .Define("t_bin", f"3.125/{max_cal[i]}")
+                        .Define("ToA", "t_bin*toa_code")
+                        .Define("ToT", "(2*tot_code - floor(tot_code/32))*t_bin")
+                        )
+        
+        # Save dataframe
+        df_filtered_i.Snapshot(store_tree_name, f"Bin/df{i}.root", store_columns)
+
+    df_filtered = ROOT.RDataFrame(store_tree_name, [f"Bin/df{i}.root" for i in max_cal])    
+    return df_filtered
+
+
+def filter_with_each_cal(df, max_cal, filter_condition):
+    """
+    Filter the data with the same cal value for all the events
+
+    Parameters
+    ----------
+    df : ROOT.RDataFrame
+        Dataframe to filter
+    max_cal : dict
+        Dictionary with the maximum cal value for each sensor column
+    filter_condition : float
+        Maximum difference between the cal value and the maximum cal value for each sensor column
+    
+    Returns
+    -------
+    df_filtered : ROOT.RDataFrame
+        Filtered dataframe
+    """
+    # Filter and define new columns
+    print(f"\033[91mFILTER CONDITION = {filter_condition}\033[0m")
+
+    condition = []
+    for i in max_cal:
+        condition.append(f"Analogical_HV == {i} && abs(cal-{max_cal[i]})<{filter_condition}")
+    filter_expr = " || ".join(condition)
+
+    # Apply filter
+    df_filtered = (df.Filter(filter_expr, "Cal cut"))
+    print(df_filtered.Report().Print())
+
+    # Define ToT and ToA in ns
+    # t_bin = T3/Cal; T3 = 3.125 ns
+    # TOA = t_bin* TOA_Code
+    # TOT = (2*TOT_Code - floor(TOT_Code/32))*t_bin
+    
+    # Define new columns
+    df_filtered = df_filtered.Define("t_bin", f"3.125/cal")
+    df_filtered = df_filtered.Define("ToA", "t_bin*toa_code")
+    df_filtered = df_filtered.Define("ToT", "(2*tot_code - floor(tot_code/32))*t_bin")
+    print(df_filtered.GetColumnNames())
+    return df_filtered
+
 @click.command()
 @click.argument('inputfiles', nargs=-1)
 def main(inputfiles):
@@ -50,6 +150,13 @@ def main(inputfiles):
         folder, name = file.rsplit("/", 1)
         if name.split('.')[-1] != 'root':
             raise ValueError(f"Input file must have .root extension and it has .{name.split('.')[-1]}")
+        os.makedirs(f"{folder}", exist_ok=True)
+        os.makedirs(f"Bin", exist_ok=True)
+        # Define store file name
+        if SAME_CAL:
+            store_file_name = f"{folder}/Filtered_{filter_condition}_Same_Cal-{name}"
+        else:
+            store_file_name = f"{folder}/Filtered_{filter_condition}-{name}"
         # Open file and create RDataFrame
         f = ROOT.TFile(file)
         df = ROOT.RDataFrame("Hits", f)
@@ -59,39 +166,21 @@ def main(inputfiles):
         # Draw histogram with Cal values and get max cal bin for each sensor column
         max_cal = plot_cal_histograms(df=df, title="Cal values before filtering")
         print(max_cal)
-        # Filter and define new columns
-        # Build filter expression
-        condition = []
-        # DANGER: CAL VALUE
-        filter_condition = 0.5
-        print(f"\033[91mFILTER CONDITION = {filter_condition}\033[0m")
-        for i in max_cal:
-            condition.append(f"Analogical_HV == {i} && abs(cal-{max_cal[i]})<{filter_condition}")
-        filter_expr = " || ".join(condition)
 
-        # Apply filter
-        df_filtered = df.Filter(filter_expr, "Cal cut")
+        if SAME_CAL:
+            # Filter data with the same cal value for all the events
+            df_filtered = filter_with_same_cal(df, max_cal, filter_condition)
+        else:
+            # Filter the data with different cal values for each event
+            df_filtered = filter_with_each_cal(df, max_cal, filter_condition)
         print(df_filtered.Report().Print())
-
-        # Plot cal after filetering
+        print(df_filtered.GetColumnNames())
+        # Plot cal after filtering
         plot_cal_histograms(df_filtered, title="Cal values after filtering")
-        # Define ToT and ToA in ns
-        # t_bin = T3/Cal; T3 = 3.125 ns
-        # TOA = t_bin* TOA_Code
-        # TOT = (2*TOT_Code - floor(TOT_Code/32))*t_bin
-
-        # Define new columns
-        df_filtered = df_filtered.Define("t_bin", "3.125/cal")
-        # If same cal value consider for all the events other code needed
-        df_filtered = df_filtered.Define("ToA", "t_bin*toa_code")
-        df_filtered = df_filtered.Define("ToT", "(2*tot_code - floor(tot_code/32))*t_bin")
 
         # Save filtered data
-        tree_name = "Hits"
-        file_name = f"{folder}/Filtered_{filter_condition}-{name}"
-        columns = {"row", "col", "cal", "ToA", "ToT", "t_bin", "Analogical_HV"}
-        df_filtered.Snapshot(tree_name, file_name, columns)
-        print(f"New ROOT file saved in {file_name}")
+        df_filtered.Snapshot(store_tree_name, store_file_name, store_columns)
+        print(f"New ROOT file saved in {store_file_name}")
         
 if __name__ == '__main__':
     try:
