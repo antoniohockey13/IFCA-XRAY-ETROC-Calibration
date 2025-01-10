@@ -1,12 +1,14 @@
 import ROOT
 import click
 import sifca_utils
+import numpy as np
 
 sifca_utils.plotting.set_sifca_style()
 
 # Set ROOT to batch mode if plots are omitted
 omit_plots = False
 ROOT.gROOT.SetBatch(omit_plots)
+colors = [ROOT.kRed, ROOT.kBlue]
 
 # Map sensor positions
 SENSOR_POS = {"6": 1, "7": 3, "8": 4, "9": 2}
@@ -139,6 +141,52 @@ def t_bin(df):
         # Keep the canvas open until user input
         input("Press Enter to continue...")
 
+
+def ToT_together(df):
+    canvas = ROOT.TCanvas()
+    legend = ROOT.TLegend(0.7, 0.7, 0.9, 0.9)
+    df_list = {}
+    # t_bin = -1
+    for i in range(2):
+        # Delta ToT depends on the floor of the ToT_CODE, it can be 2*t_bin or t_bin, in most of the cases it is 2*t_bin
+        # Filter df to select data with the same Cal
+        df_list[i] = df.Filter(f"Analogical_HV == {i}")
+    #     t_bin = max(t_bin, df_list[i].Mean("t_bin").GetValue())
+    #     print(f"Analogical HV {i} t_bin: {t_bin}")
+
+    # bin_size = 2*t_bin
+    # min_tot = -bin_size/2
+    # max_tot = 7+bin_size/2
+    # bin_number = int((max_tot-min_tot)/bin_size)
+    # print(f"Number of bins: {bin_number}")
+    histograms = []
+    ROOT.gStyle.SetOptStat(000000)
+    histograms.append(ROOT.TH2F("limits","",1, 0, 7, 1, 1e-3, 0.04))
+    histograms[-1].Draw()
+    histograms[-1].GetXaxis().SetTitle("ToT/ns")
+    histograms[-1].GetYaxis().SetTitle(f"Counts")
+    canvas.Draw()
+    opt = "same"
+    for i, df_i in df_list.items():
+        t_bin = df_list[i].Mean("t_bin").GetValue()
+        print(f"Analogical HV {i} t_bin: {t_bin}")
+        bin_size = 2*t_bin
+        min_tot = -bin_size/2
+        max_tot = 7+bin_size/2
+        bin_number = int((max_tot-min_tot)/bin_size)
+        histograms.append(df_i.Histo1D(
+            ("ToT", f"Analogical HV {i}", bin_number, min_tot, max_tot), "ToT"
+        ))
+        histograms[-1].SetDirectory(0)
+        histograms[-1].SetLineColor(colors[i])
+        legend.AddEntry(histograms[-1].GetValue(), f"Analogical HV {i}", "l")
+        histograms[-1].DrawNormalized(opt, 1.0)
+    legend.Draw()
+    if not omit_plots:
+        # Keep the canvas open until user input
+        input("Press Enter to continue...")  
+
+
 @click.command()
 @click.argument('inputfile', nargs=1)
 def main(inputfile):
@@ -150,11 +198,13 @@ def main(inputfile):
     df = ROOT.RDataFrame("Hits", f)
 
     # Plot the hit map
-    hit_map(df)
+    # hit_map(df)
 
     # Plot the ToT
     ToT(df)
 
+    # Plot the ToT together
+    ToT_together(df)
     # Plot the ToA
     ToA(df)
 
