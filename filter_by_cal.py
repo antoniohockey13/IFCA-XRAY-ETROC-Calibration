@@ -80,13 +80,13 @@ def filter_with_same_cal(df, max_cal, filter_condition):
 
         # Define ToT and ToA in ns
         # t_bin = T3/Cal; T3 = 3.125 ns
-        # TOA = t_bin* TOA_Code
+        # TOA = 12.5-t_bin* TOA_Code
         # TOT = (2*TOT_Code - floor(TOT_Code/32))*t_bin
 
         # Define new columns
         df_filtered_i = (df_filtered_i
                         .Define("t_bin", f"3.125/{max_cal[i]}")
-                        .Define("ToA", "t_bin*toa_code")
+                        .Define("ToA", "12.5-t_bin*toa_code")
                         .Define("ToT", "(2*tot_code - floor(tot_code/32))*t_bin")
                         )
         
@@ -129,12 +129,12 @@ def filter_with_each_cal(df, max_cal, filter_condition):
 
     # Define ToT and ToA in ns
     # t_bin = T3/Cal; T3 = 3.125 ns
-    # TOA = t_bin* TOA_Code
+    # TOA = 12.5-t_bin* TOA_Code
     # TOT = (2*TOT_Code - floor(TOT_Code/32))*t_bin
     
     # Define new columns
     df_filtered = df_filtered.Define("t_bin", f"3.125/cal")
-    df_filtered = df_filtered.Define("ToA", "t_bin*toa_code")
+    df_filtered = df_filtered.Define("ToA", "12.5-t_bin*toa_code")
     df_filtered = df_filtered.Define("ToT", "(2*tot_code - floor(tot_code/32))*t_bin")
     print(df_filtered.GetColumnNames())
     return df_filtered
