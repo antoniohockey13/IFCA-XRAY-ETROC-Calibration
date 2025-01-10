@@ -9,10 +9,10 @@ sifca_utils.plotting.set_sifca_style()
 # CONSTANTS 
 SAME_CAL = True
 # DANGER: CAL VALUE
-filter_condition = 2.5
+filter_condition = 0.5
 # Define store variables
 store_tree_name = "Hits"
-store_columns = {"row", "col", "cal", "ToA", "ToT", "t_bin", "Analogical_HV"}
+store_columns = {"row", "col", "cal", "ToA", "ToT", "t_bin", "Analogical_HV", "toa_code", "tot_code"}
 
 # Set ROOT to batch mode if plots are omitted
 omit_plots = False
@@ -23,7 +23,6 @@ def plot_cal_histograms(df, title = "Cal values before filtering"):
     Plot histograms for CAL values and return the max bin for each sensor column.
     Cal goes from 0 to 1023 in integer values.
     """
-    print("Create canvas")
     canvas = ROOT.TCanvas("c", title)
     canvas.Divide(2, 1)
     max_cal_bins = {}
@@ -31,18 +30,16 @@ def plot_cal_histograms(df, title = "Cal values before filtering"):
     for i in range(2):
         canvas.cd(i+1)
         ROOT.gPad.SetLogy()
-        print(f"Analogical HV = {i}")
-        print(df.GetColumnNames())
         hist = df.Filter(f"Analogical_HV == {i}").Histo1D(
-            ("cal", f"Analogical_HV = {i}", 1024, 0., 1023), "cal"
+            ("cal", f"Analogical_HV = {i}", 1024, -0.5, 1023.5), "cal"
             )
-        print(hist.GetEntries())
         hist.GetXaxis().SetTitle("Cal")
         hist.GetYaxis().SetTitle(f"Counts Analogical HV={i}")
         hist.SetTitle(f"Analogical HV = {i}")
         hist.Draw()
         histograms.append(hist)
-        max_cal_bins[i] = hist.GetMaximumBin()
+        # -1 Added because the bin number starts at 1 and the cal value at 0
+        max_cal_bins[i] = hist.GetMaximumBin()-1
 
     canvas.Update()
     if not omit_plots:
@@ -72,7 +69,7 @@ def filter_with_same_cal(df, max_cal, filter_condition):
     # Filter and define new columns
     print(f"\033[91mFILTER CONDITION = {filter_condition}\033[0m")
     for i in max_cal:
-        filter_expr = (f"Analogical_HV == {i} && abs(cal-{max_cal[i]})<{filter_condition}")
+        filter_expr = (f"Analogical_HV == {i} && abs(cal-{max_cal[i]+1})<{filter_condition}")
 
         # Apply filter
         df_filtered_i = (df.Filter(filter_expr, "Cal cut"))
@@ -136,7 +133,6 @@ def filter_with_each_cal(df, max_cal, filter_condition):
     df_filtered = df_filtered.Define("t_bin", f"3.125/cal")
     df_filtered = df_filtered.Define("ToA", "12.5-t_bin*toa_code")
     df_filtered = df_filtered.Define("ToT", "(2*tot_code - floor(tot_code/32))*t_bin")
-    print(df_filtered.GetColumnNames())
     return df_filtered
 
 @click.command()
@@ -154,7 +150,7 @@ def main(inputfiles):
         os.makedirs(f"Bin", exist_ok=True)
         # Define store file name
         if SAME_CAL:
-            store_file_name = f"{folder}/Filtered_{filter_condition}_Same_Cal-{name}"
+            store_file_name = f"{folder}/Filtered_{filter_condition}_right_Same_Cal-{name}"
         else:
             store_file_name = f"{folder}/Filtered_{filter_condition}-{name}"
         # Open file and create RDataFrame
@@ -174,7 +170,6 @@ def main(inputfiles):
             # Filter the data with different cal values for each event
             df_filtered = filter_with_each_cal(df, max_cal, filter_condition)
         print(df_filtered.Report().Print())
-        print(df_filtered.GetColumnNames())
         # Plot cal after filtering
         plot_cal_histograms(df_filtered, title="Cal values after filtering")
 
