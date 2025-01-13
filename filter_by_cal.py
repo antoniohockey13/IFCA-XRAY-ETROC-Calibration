@@ -7,9 +7,10 @@ import os
 sifca_utils.plotting.set_sifca_style()
 
 # CONSTANTS 
-SAME_CAL = True
+SAME_CAL = False
 # DANGER: CAL VALUE
-filter_condition = 0.5
+filter_condition = 1.5
+select_bin = 0 #+1 right bin, -1 left bin
 # Define store variables
 store_tree_name = "Hits"
 store_columns = {"row", "col", "cal", "ToA", "ToT", "t_bin", "Analogical_HV", "toa_code", "tot_code"}
@@ -67,9 +68,9 @@ def filter_with_same_cal(df, max_cal, filter_condition):
         Filtered dataframe
     """
     # Filter and define new columns
-    print(f"\033[91mFILTER CONDITION = {filter_condition}\033[0m")
+    print(f"\033[91mFILTER CONDITION = {filter_condition}, bin selected {select_bin}\033[0m")
     for i in max_cal:
-        filter_expr = (f"Analogical_HV == {i} && abs(cal-{max_cal[i]+1})<{filter_condition}")
+        filter_expr = (f"Analogical_HV == {i} && abs(cal-{max_cal[i]}-({select_bin}))<{filter_condition}")
 
         # Apply filter
         df_filtered_i = (df.Filter(filter_expr, "Cal cut"))
@@ -113,11 +114,11 @@ def filter_with_each_cal(df, max_cal, filter_condition):
         Filtered dataframe
     """
     # Filter and define new columns
-    print(f"\033[91mFILTER CONDITION = {filter_condition}\033[0m")
+    print(f"\033[91mFILTER CONDITION = {filter_condition}, bin selected {select_bin}\033[0m")
 
     condition = []
     for i in max_cal:
-        condition.append(f"Analogical_HV == {i} && abs(cal-{max_cal[i]})<{filter_condition}")
+        condition.append(f"Analogical_HV == {i} && abs(cal-{max_cal[i]}-({select_bin}))<{filter_condition}")
     filter_expr = " || ".join(condition)
 
     # Apply filter
@@ -150,9 +151,9 @@ def main(inputfiles):
         os.makedirs(f"Bin", exist_ok=True)
         # Define store file name
         if SAME_CAL:
-            store_file_name = f"{folder}/Filtered_{filter_condition}_right_Same_Cal-{name}"
+            store_file_name = f"{folder}/Filtered_{filter_condition}_{select_bin}_Same_Cal-{name}"
         else:
-            store_file_name = f"{folder}/Filtered_{filter_condition}-{name}"
+            store_file_name = f"{folder}/Filtered_{filter_condition}_{select_bin}-{name}"
         # Open file and create RDataFrame
         f = ROOT.TFile(file)
         df = ROOT.RDataFrame("Hits", f)
