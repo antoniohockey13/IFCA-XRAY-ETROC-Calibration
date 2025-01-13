@@ -1,7 +1,6 @@
 import ROOT
 import click
 import sifca_utils
-import numpy as np
 
 sifca_utils.plotting.set_sifca_style()
 
@@ -111,6 +110,35 @@ def ToA(df):
         input("Press Enter to continue...")
     return histograms
 
+def ToA_CODE(df):
+    """
+    Plot the ToA_CODE of the ETROC
+    
+    Args:
+        df (ROOT.RDataFrame): RDataFrame with the hits
+    """
+    canvas = ROOT.TCanvas()
+    canvas.Divide(2, 1)
+
+    histograms = []
+
+    for i in range(2):
+        canvas.cd(i+1)
+        hist = df.Filter(f"Analogical_HV == {i}").Histo1D(
+            ("toa_code", f"Analogical HV {i}", 1025, -0.5, 1024.5), "toa_code"
+        )
+        hist.GetXaxis().SetTitle("ToA_CODE")
+        hist.GetYaxis().SetTitle(f"Counts")
+        hist.SetTitle(f"Analogical HV = {i}")
+        hist.Draw()
+
+        histograms.append(hist)
+
+    canvas.Update()
+    if not omit_plots:
+        # Keep the canvas open until user input
+        input("Press Enter to continue...")
+
 
 def t_bin(df):
     """
@@ -143,6 +171,12 @@ def t_bin(df):
 
 
 def ToT_together(df):
+    """
+    Plot the ToT of the ETROC in ns, plot the analogical and digital HV in the same plot with different colors
+
+    Args:
+        df (ROOT.RDataFrame): RDataFrame with the hits
+    """
     canvas = ROOT.TCanvas()
     legend = ROOT.TLegend(0.7, 0.7, 0.9, 0.9)
     df_list = {}
@@ -198,15 +232,16 @@ def main(inputfile):
     df = ROOT.RDataFrame("Hits", f)
 
     # Plot the hit map
-    # hit_map(df)
+    hit_map(df)
 
     # Plot the ToT
     ToT(df)
 
     # Plot the ToT together
-    ToT_together(df)
+    # ToT_together(df)
     # Plot the ToA
     ToA(df)
+    ToA_CODE(df)
 
     # Plot the t_bin
     # t_bin(df)
