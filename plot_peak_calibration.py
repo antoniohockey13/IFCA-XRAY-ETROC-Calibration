@@ -4,6 +4,10 @@ import numpy as np
 import sifca_utils
 
 sifca_utils.plotting.set_sifca_style()
+# Energy peaks in the simulation
+#8.366336633663366, 9.686468646864686, 9.95049504950495, 11.303630363036303
+"""
+WRONG CALIBRATION VALUES due to wrong Cal plot
 
 # # ToT measured in TFM 35kV data, Filtered_2024_06_13-08_37_11.root, analogical = 0
 # tot_peaks = [3.4504716981132075, 2.2948113207547167, 3.714622641509434]
@@ -26,6 +30,31 @@ if len(tot_peaks) == 3:
 if len(tot_peaks) == 4:
     energy_peaks =  [8.366336633663366, 11.303630363036303, 9.686468646864686, 9.95049504950495] 
 energy_error = 0.033
+"""
+# # ToT measured in TFM 35kV data, Filtered_1.5_0-2024_06_13-08_37_11.root analogical = 0
+# tot_peaks = [3.074772813927577, 3.4672902164559676, 4.088776103792585]
+# tot_error = 0.03238341968911917
+# energy_peaks = [8.366336633663366, 9.686468646864686, 11.303630363036303]
+# energy_error = 0.033
+
+# # ToT measured in TFM 35kV data, Filtered_1.5_0-2024_06_13-08_37_11.root analogical = 1
+# tot_peaks = [2.370970000766336, 3.349462666768845, 3.4623656666922114, 4.741932999157031]
+# tot_error = 0.03238341968911917
+# energy_peaks = [8.366336633663366, 9.686468646864686, 9.95049504950495, 11.303630363036303]
+# energy_error = 0.033
+
+# ToT measured in TFM 35kV data, Filtered_1.5_0_Same_Cal-2024_06_13-08_37_11.root analogical = 0
+tot_peaks = [3.060465494791667, 3.4511628327546298, 3.7116277247299387]
+tot_error = 0.032552083333333336
+energy_peaks = [8.366336633663366, 9.686468646864686, 11.303630363036303]
+energy_error = 0.033
+# ToT measured in TFM 35kV data, Filtered_1.5_0_Same_Cal-2024_06_13-08_37_11.root analogical = 1
+tot_peaks = [3.3675710908148724, 3.556755246793626, 3.7837762339681302, 4.729697013861899]
+tot_error = 0.037650602409638564
+energy_peaks = [8.366336633663366, 9.686468646864686, 9.95049504950495, 11.303630363036303]
+energy_error = 0.033
+
+
 def main():
     # Order list of peaks
     tot_peaks.sort()
