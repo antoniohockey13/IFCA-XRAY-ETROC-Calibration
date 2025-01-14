@@ -90,21 +90,29 @@ def draw_toa_stacked(df_dict, df_15):
         min_tot = -bin_size/2
         max_tot = 14+bin_size/2
         bin_number = int((max_tot-min_tot)/bin_size)
-
         # Loop over the selected bins
         for i, df_i in df_dict.items():
             # Filter selected dataframe with te Analogical HV
             df_i_filtered = df_i.Filter(f"Analogical_HV == {ipad}")
-            print(f"Analogical HV {ipad}, bin selected: {i}, t_bin: {t_bin}")
+            print(f"Analogical HV {ipad}, bin selected: {i}")
             histograms[ipad].append(df_i_filtered.Histo1D(
                 ("ToA", f"Analogical HV {ipad}", bin_number, min_tot, max_tot), "ToA"
-            ))
+            ).GetValue()
+            )
+
             histograms[ipad][-1].SetDirectory(0)
             histograms[ipad][-1].SetLineColor(colors[int(i)+1])
-            stack[ipad].Add(histograms[ipad][-1].GetValue())
-            legends[-1].AddEntry(histograms[ipad][-1].GetValue(), f"Bin {i}", "l")
+            # Set fill characteristic
+            histograms[ipad][-1].SetFillColorAlpha(colors[int(i)+1], 1)
+            histograms[ipad][-1].SetFillStyle(3001)
 
-        stack[ipad].Draw("hist")
+        # Sort histograms by the number of entries first the one with more entries
+        histograms[ipad].sort(key=lambda x: x.GetEntries(), reverse=True)
+        for histo_i in histograms[ipad]:
+            stack[ipad].Add(histo_i)
+            legends[-1].AddEntry(histo_i, f"Bin selected {i}", "l")
+        
+        stack[ipad].Draw("hist fill")
         stack[ipad].GetXaxis().SetTitle("ToA/ns")
         stack[ipad].GetYaxis().SetTitle("Counts")
         stack[ipad].SetTitle(f"Analogical HV = {ipad}")
@@ -138,7 +146,7 @@ def main(inputfiles):
             f = ROOT.TFile.Open(inputfile)
             df_15 = ROOT.RDataFrame("Hits", f)
     
-    draw_toa_together(df_dict)
+    # draw_toa_together(df_dict)
 
     draw_toa_stacked(df_dict, df_15)
 
