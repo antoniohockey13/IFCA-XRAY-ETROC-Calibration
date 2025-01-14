@@ -101,6 +101,7 @@ def draw_toa_stacked(df_dict, df_15):
             )
 
             histograms[ipad][-1].SetDirectory(0)
+            legends[-1].AddEntry(histograms[ipad][-1], f"Bin selected {i}", "l")
             histograms[ipad][-1].SetLineColor(colors[int(i)+1])
             # Set fill characteristic
             histograms[ipad][-1].SetFillColorAlpha(colors[int(i)+1], 1)
@@ -108,9 +109,8 @@ def draw_toa_stacked(df_dict, df_15):
 
         # Sort histograms by the number of entries first the one with more entries
         histograms[ipad].sort(key=lambda x: x.GetEntries(), reverse=True)
-        for histo_i in histograms[ipad]:
+        for i, histo_i in enumerate(histograms[ipad]):
             stack[ipad].Add(histo_i)
-            legends[-1].AddEntry(histo_i, f"Bin selected {i}", "l")
         
         stack[ipad].Draw("hist fill")
         stack[ipad].GetXaxis().SetTitle("ToA/ns")
