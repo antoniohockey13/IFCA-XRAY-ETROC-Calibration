@@ -72,6 +72,35 @@ def ToT(df):
         input("Press Enter to continue...")  
     return histograms
 
+def ToT_CODE(df):
+    """
+    Plot the ToT_CODE of the ETROC
+    
+    Args:
+        df (ROOT.RDataFrame): RDataFrame with the hits
+    """
+    canvas = ROOT.TCanvas()
+    canvas.Divide(2, 1)
+
+    histograms = []
+
+    for i in range(2):
+        canvas.cd(i+1)
+        hist = df.Filter(f"Analogical_HV == {i}").Histo1D(
+            ("tot_code", f"Analogical HV {i}", 512, -0.5, 511.5), "tot_code"
+        )
+        hist.GetXaxis().SetTitle("ToT_CODE")
+        hist.GetYaxis().SetTitle(f"Counts")
+        hist.SetTitle(f"Analogical HV = {i}")
+        hist.Draw()
+
+        histograms.append(hist)
+
+    canvas.Update()
+    if not omit_plots:
+        # Keep the canvas open until user input
+        input("Press Enter to continue...")
+
 def ToA(df):
     """
     Plot the ToA of the ETROC in ns
@@ -283,10 +312,11 @@ def main(inputfile):
     df = ROOT.RDataFrame("Hits", f)
 
     # Plot the hit map
-    # hit_map(df)
+    hit_map(df)
 
-    # # Plot the ToT
-    # ToT(df)
+    # Plot the ToT
+    ToT(df)
+    ToT_CODE(df)
 
     # Plot the ToT together
     # ToT_together(df)
