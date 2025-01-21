@@ -184,12 +184,11 @@ def ToA_pixel(df):
     Returns:
         histograms (list): List with the histograms for each pixel
     """
-    POSITIONS = {"6": 1, "7": 3, "8": 4, "9": 2}
     canvas = ROOT.TCanvas()
     canvas.Divide(2, 2)
     histograms = []
     for i in range(6, 10):
-        canvas.cd(POSITIONS[str(i)])
+        canvas.cd(SENSOR_POS[str(i)])
 
         # Filter dataframe to select col and obtain t_bin
         df_i = df.Filter(f"col == {i}")
@@ -213,6 +212,7 @@ def ToA_pixel(df):
         histograms.append(hist)
 
     canvas.Update()
+
     if not omit_plots:
         # Keep the canvas open until user input
         input("Press Enter to continue...")
@@ -300,6 +300,39 @@ def ToT_together(df):
         # Keep the canvas open until user input
         input("Press Enter to continue...")  
 
+def Cal_pixel(df):
+    canvas = ROOT.TCanvas()
+    canvas.Divide(2, 2)
+    histograms = []
+    for i in range(6, 10):
+        canvas.cd(SENSOR_POS[str(i)])
+
+        # Filter dataframe to select col and obtain t_bin
+        df_i = df.Filter(f"col == {i}")
+        bin_size = 1
+        min_cal = -bin_size/2
+        max_cal = 1024+bin_size/2
+        bin_number = int((max_cal-min_cal)/bin_size)        
+        print(f"Col: {i} Number of bins: {bin_number}")
+
+        # Create histogram
+        hist = df_i.Histo1D(
+            ("cal", f"Row {i}", bin_number, min_cal, max_cal), "cal"
+        )
+        # Configure histogram
+        hist.GetXaxis().SetTitle("Cal")
+        hist.GetYaxis().SetTitle(f"Counts")
+        hist.SetTitle(f"Column = {i}")
+        hist.Draw()
+
+        histograms.append(hist)
+
+    canvas.Update()
+
+    if not omit_plots:
+        # Keep the canvas open until user input
+        input("Press Enter to continue...")
+    return histograms
 
 @click.command()
 @click.argument('inputfile', nargs=1)
@@ -315,18 +348,19 @@ def main(inputfile):
     hit_map(df)
 
     # Plot the ToT
-    ToT(df)
-    ToT_CODE(df)
+    # ToT(df)
+    # ToT_CODE(df)
 
     # Plot the ToT together
     # ToT_together(df)
     # Plot the ToA
-    ToA(df)
-    ToA_CODE(df)
-    ToA_pixel(df)
+    # ToA(df)
+    # ToA_CODE(df)
+    # ToA_pixel(df)
 
     # Plot the t_bin
     # t_bin(df)
+    Cal_pixel(df)
 
 if __name__ == "__main__":
     try:
