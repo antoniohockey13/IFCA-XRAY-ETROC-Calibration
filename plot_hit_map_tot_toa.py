@@ -42,12 +42,13 @@ def ToT(df):
     canvas = ROOT.TCanvas()
     canvas.Divide(2, 1)
 
-    histograms = []
+    histograms = {}
     
     for i in range(2):
         # Delta ToT depends on the floor of the ToT_CODE, it can be 2*t_bin or t_bin, in most of the cases it is 2*t_bin
         # Filter df to select data with the same Cal
         df_i = df.Filter(f"Analogical_HV == {i}")
+	# Compute histograms limits
         t_bin = df_i.Mean("t_bin").GetValue()
         bin_size = 2*t_bin
         min_tot = -bin_size/2
@@ -55,6 +56,7 @@ def ToT(df):
         bin_number = int((max_tot-min_tot)/bin_size)
         print(f"Number of bins: {bin_number}")
         
+	# Plot histogram
         canvas.cd(i+1)
         hist = df_i.Histo1D(
             ("ToT", f"Analogical HV {i}", bin_number, min_tot, max_tot), "ToT"
@@ -64,7 +66,7 @@ def ToT(df):
         hist.SetTitle(f"Analogical HV = {i}")
         hist.Draw("")
 
-        histograms.append(hist)
+        histograms[i] = hist
 
     canvas.Update()
     if not omit_plots:
@@ -82,10 +84,11 @@ def ToT_CODE(df):
     canvas = ROOT.TCanvas()
     canvas.Divide(2, 1)
 
-    histograms = []
+    histograms = {}
 
     for i in range(2):
         canvas.cd(i+1)
+	# Plot histogram
         hist = df.Filter(f"Analogical_HV == {i}").Histo1D(
             ("tot_code", f"Analogical HV {i}", 512, -0.5, 511.5), "tot_code"
         )
@@ -94,7 +97,7 @@ def ToT_CODE(df):
         hist.SetTitle(f"Analogical HV = {i}")
         hist.Draw()
 
-        histograms.append(hist)
+        histograms[i] = hist
 
     canvas.Update()
     if not omit_plots:
@@ -111,18 +114,22 @@ def ToA(df):
     canvas = ROOT.TCanvas()
     canvas.Divide(2, 1)
 
-    histograms = []
+    histograms = {}
     for i in range(2):
+
         # Delta ToA is t_bin
         # Filter df to select data with the same Cal
         df_i = df.Filter(f"Analogical_HV == {i}")
+	# Compute histogram limits
         t_bin = df_i.Mean("t_bin").GetValue()
         bin_size = 2*t_bin
         min_toa = -bin_size/2
         max_toa = 14+bin_size/2
         bin_number = int((max_toa-min_toa)/bin_size)
         print(f"Number of bins: {bin_number}")
+        
         canvas.cd(i+1)
+	# Plot histogram
         hist = df_i.Histo1D(
             ("ToA", f"Analogical HV {i}", bin_number, min_toa, max_toa), "ToA"
         )
@@ -131,7 +138,7 @@ def ToA(df):
         hist.SetTitle(f"Analogical HV = {i}")
         hist.Draw()
 
-        histograms.append(hist)
+        histograms[i] = hist
 
     canvas.Update()
     if not omit_plots:
@@ -149,15 +156,17 @@ def ToA_CODE(df):
     canvas = ROOT.TCanvas()
     canvas.Divide(2, 1)
 
-    histograms = []
+    histograms = {}
 
     for i in range(2):
         canvas.cd(i+1)
+	# Compute histogram limits
         bin_size = 2*1
         min_toa = -bin_size/2
         max_toa = 1024+bin_size/2
         bin_number = int((max_toa-min_toa)/bin_size)
         print(f"Number of bins: {bin_number}")
+	# Plot histogram
         hist = df.Filter(f"Analogical_HV == {i}").Histo1D(
             ("toa_code", f"Analogical HV {i}", bin_number, min_toa, max_toa), "toa_code"
         )
@@ -166,7 +175,7 @@ def ToA_CODE(df):
         hist.SetTitle(f"Analogical HV = {i}")
         hist.Draw()
 
-        histograms.append(hist)
+        histograms[i] = hist
 
     canvas.Update()
     if not omit_plots:
@@ -186,12 +195,13 @@ def ToA_pixel(df):
     """
     canvas = ROOT.TCanvas()
     canvas.Divide(2, 2)
-    histograms = []
+    histograms = {}
     for i in range(6, 10):
         canvas.cd(SENSOR_POS[str(i)])
 
         # Filter dataframe to select col and obtain t_bin
         df_i = df.Filter(f"col == {i}")
+	# Compute histogram limits
         t_bin = df_i.Mean("t_bin").GetValue()
         print(f"Row {i} t_bin: {t_bin}")
         bin_size = 2*t_bin
@@ -209,7 +219,7 @@ def ToA_pixel(df):
         hist.SetTitle(f"Column = {i}")
         hist.Draw()
 
-        histograms.append(hist)
+        histograms[i] = hist
 
     canvas.Update()
 
@@ -230,7 +240,7 @@ def t_bin(df):
     canvas = ROOT.TCanvas()
     canvas.Divide(2, 1)
 
-    histograms = []
+    histograms = {}
 
     for i in range(2):
         canvas.cd(i+1)
@@ -242,7 +252,7 @@ def t_bin(df):
         hist.SetTitle(f"Analogical HV = {i}")
         hist.Draw()
 
-        histograms.append(hist)
+        histograms[i] = hist
 
     canvas.Update()
     if not omit_plots:
@@ -260,20 +270,13 @@ def ToT_together(df):
     canvas = ROOT.TCanvas()
     legend = ROOT.TLegend(0.7, 0.7, 0.9, 0.9)
     df_list = {}
-    # t_bin = -1
     for i in range(2):
         # Delta ToT depends on the floor of the ToT_CODE, it can be 2*t_bin or t_bin, in most of the cases it is 2*t_bin
         # Filter df to select data with the same Cal
         df_list[i] = df.Filter(f"Analogical_HV == {i}")
-    #     t_bin = max(t_bin, df_list[i].Mean("t_bin").GetValue())
-    #     print(f"Analogical HV {i} t_bin: {t_bin}")
 
-    # bin_size = 2*t_bin
-    # min_tot = -bin_size/2
-    # max_tot = 7+bin_size/2
-    # bin_number = int((max_tot-min_tot)/bin_size)
-    # print(f"Number of bins: {bin_number}")
     histograms = []
+    # Create histogram with the limits (change 1e-3 depending the normalisation)
     ROOT.gStyle.SetOptStat(000000)
     histograms.append(ROOT.TH2F("limits","",1, 0, 7, 1, 1e-3, 0.04))
     histograms[-1].Draw()
@@ -282,6 +285,7 @@ def ToT_together(df):
     canvas.Draw()
     opt = "same"
     for i, df_i in df_list.items():
+	# Compute binning
         t_bin = df_list[i].Mean("t_bin").GetValue()
         print(f"Analogical HV {i} t_bin: {t_bin}")
         bin_size = 2*t_bin
@@ -303,11 +307,11 @@ def ToT_together(df):
 def Cal_pixel(df):
     canvas = ROOT.TCanvas()
     canvas.Divide(2, 2)
-    histograms = []
+    histograms = {}
     for i in range(6, 10):
         canvas.cd(SENSOR_POS[str(i)])
 
-        # Filter dataframe to select col and obtain t_bin
+        # Filter dataframe to select col
         df_i = df.Filter(f"col == {i}")
         bin_size = 1
         min_cal = -bin_size/2
@@ -325,7 +329,7 @@ def Cal_pixel(df):
         hist.SetTitle(f"Column = {i}")
         hist.Draw()
 
-        histograms.append(hist)
+        histograms[i] = hist
 
     canvas.Update()
 
@@ -333,6 +337,54 @@ def Cal_pixel(df):
         # Keep the canvas open until user input
         input("Press Enter to continue...")
     return histograms
+
+def fit_ToA_to_sinusoidal(histograms):
+    """
+    WARNING:
+        NOT WORKING PROPERLY 
+    Fit the ToA histogram to a sinusoidal function
+    NOT WORKING PROPERLY, it is needed to fix the initial parameters of the fit function
+    or change the fit function
+    Args:
+        histograms (dict): Dictionary with the histograms for each pixel
+    """
+    print("\033[91m***************************************************************\033[0m")
+    print("\033[91m ATTENTION \033[0m")
+    print("\033[91m This funtion is not working properly \033[0m")
+    print("\033[91m***************************************************************\033[0m")
+
+
+    # Fit function
+    fit_function = ROOT.TF1("fit", "[0]*sin([1]*x+[2])+[3]", 0.2, 12.5)
+    # Fit function parameters
+    fit_function.SetParameter(0, 1)
+    fit_function.SetParameter(1, 3.14)
+    fit_function.SetParameter(2, 0)
+    fit_function.SetParameter(3, 1e3)
+    
+    # Create canvas
+    canvas = ROOT.TCanvas()
+    # Divide canvas
+    # Prepared for Analogical/Digital difference and to 4 pixels
+    if len(histograms) == 2:
+        canvas.Divide(2, 1)
+        for i, hist in histograms.items():
+            print(f"cd canvas {i}")
+            canvas.cd(i+1)
+            hist.Fit(fit_function, "R")
+            hist.Draw("PE")
+
+    elif len(histograms) == 4:
+        canvas.Divide(2, 2)
+        for i, hist in histograms.items():
+            print(f"cd canvas {SENSOR_POS[str(i)]}, column {i}")
+            canvas.cd(SENSOR_POS[str(i)])
+            hist.Fit(fit_function, "R")
+            hist.Draw("PE")
+    canvas.Update()
+    if not omit_plots:
+        # Keep the canvas open until user input
+        input("Press Enter to continue...")
 
 @click.command()
 @click.argument('inputfile', nargs=1)
@@ -354,13 +406,15 @@ def main(inputfile):
     # Plot the ToT together
     # ToT_together(df)
     # Plot the ToA
-    # ToA(df)
+    toa_histograms = ToA(df)
+    fit_ToA_to_sinusoidal(toa_histograms)
     # ToA_CODE(df)
-    # ToA_pixel(df)
+    toa_pixel_histograms = ToA_pixel(df)
+    fit_ToA_to_sinusoidal(toa_pixel_histograms)
 
     # Plot the t_bin
     # t_bin(df)
-    Cal_pixel(df)
+    # Cal_pixel(df)
 
 if __name__ == "__main__":
     try:
