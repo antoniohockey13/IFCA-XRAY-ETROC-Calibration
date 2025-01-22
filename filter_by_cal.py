@@ -6,11 +6,12 @@ import os
 
 sifca_utils.plotting.set_sifca_style()
 
-# CONSTANTS 
+# FILTER CONSTANTS 
 SAME_CAL = False
-# DANGER: CAL VALUE
+# |cal - max_cal - select_bin| < filter_condition
 filter_condition = 1.5
 select_bin = 0 #+1 right bin, -1 left bin
+
 # Define store variables
 store_tree_name = "Hits"
 store_columns = {"row", "col", "cal", "ToA", "ToT", "t_bin", "Analogical_HV", "toa_code", "tot_code"}
