@@ -23,7 +23,8 @@ def get_histograms_limits(t_bin):
 
 def draw_toa_together(df_dict):
     """
-    Draw the ToA histograms in the same canvas normalised for the different bins selected
+    Draw the ToA histograms in the same canvas for the different bins selected
+    Filtering to analogical and digital HV
 
     Args:
         df_dict (dict): Dictionary with the different dataframes
@@ -74,7 +75,7 @@ def draw_toa_together(df_dict):
 
 def draw_toa_together_per_pixel(df_dict):
     """
-    Draw the ToA histograms in the same canvas normalised for the different bins selected
+    Draw the ToA histograms in the same canvas for the different bins selected
 
     Args:
         df_dict (dict): Dictionary with the different dataframes
@@ -246,7 +247,7 @@ def draw_toa_stacked_per_pixel(df_dict, df_15):
 @click.argument('inputfiles', nargs=-1)
 def main(inputfiles):
     """
-    Main function to draw the ToA histograms normalised for the different bins selected
+    Main function to draw the ToA histograms for the different bins selected
     
     Args:
         inputfiles (list): List with the input files. 
