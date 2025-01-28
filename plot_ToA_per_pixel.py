@@ -21,6 +21,50 @@ def get_histograms_limits(t_bin):
     bin_number = int((max_toa-min_toa)/bin_size)
     return min_toa, max_toa, bin_number
 
+def draw_toa(df_dict):
+    c = ROOT.TCanvas()
+    c.Divide(2,2)
+    histograms = {6 : [], 7: [], 8: [], 9: []}
+    legends = []
+    for icol in range(6, 10):
+        c.cd(SENSOR_POS[str(icol)])
+        # Remove statistics values
+        ROOT.gStyle.SetOptStat(00000)
+        # Create limits histogram 
+        # Limits:
+        # filter 0 : 7e-3
+        # filter 1 : 0.05
+        # filter -1 : 0.04
+        histograms[icol].append(ROOT.TH2F("limits", "", 1, 0, 14, 1, 1e-3, 0.04))
+        histograms[icol][-1].Draw()
+        histograms[icol][-1].GetXaxis().SetTitle("ToA/ns")
+        histograms[icol][-1].GetYaxis().SetTitle("Counts")
+        histograms[icol][-1].SetTitle(f"Column = {icol}")
+        c.Draw()
+        opt = "same"
+        legends.append(ROOT.TLegend(0.2, 0.8, 0.5, 0.9))
+
+        # Count to select color for each voltage
+        i_color = 0
+        # Loop over dfs to plot them
+        for i, df_i in df_dict.items():
+            df_icol_filtered = df_i.Filter(f"col == {icol}")
+            # Compute histogram limits
+            t_bin = df_icol_filtered.Mean("t_bin").GetValue()
+            min_toa, max_toa, bin_number = get_histograms_limits(t_bin)
+            # Create histogram
+            histograms[icol].append(df_icol_filtered.Histo1D(
+                ("ToA", f"Column {icol}", bin_number, min_toa, max_toa), "ToA"
+            ).GetValue()
+            )
+            histograms[icol][-1].SetDirectory(0)
+            histograms[icol][-1].SetLineColor(colors[i_color])
+            legends[-1].AddEntry(histograms[icol][-1], f"Voltage {i}", "l")
+            histograms[icol][-1].DrawNormalized(opt)
+            i_color += 1
+        legends[-1].Draw()
+    c.Update()
+    input("Press enter to continue...")
 
 def draw_toa_stacked_per_pixel(df_dict):
     """
@@ -52,7 +96,7 @@ def draw_toa_stacked_per_pixel(df_dict):
         for i, df_i in df_dict.items():
             # Filter selected dataframe with te Column
             df_i_filtered = df_i.Filter(f"col == {icol}")
-            print(f"Column {icol}")
+            # Compute histogram limits
             t_bin = df_i_filtered.Mean("t_bin").GetValue()
             min_toa, max_toa, bin_number = get_histograms_limits(t_bin)
 
@@ -88,7 +132,8 @@ def draw_toa_stacked_per_pixel(df_dict):
 @click.argument("inputfiles", nargs=-1)
 def main(inputfiles):
     """
-    Main function to call the plotting function. Draws the ToA histogramas for the different kV used (prepared for 30 and 35 kV).
+    Main function to call the plotting function. Draws the ToA histogramas for the different
+    kV used (prepared for 30 and 35 kV).
 
     Args:
         inputfiles (list): List with the input files format expected: */*-Time.*
@@ -100,17 +145,17 @@ def main(inputfiles):
         name = inputfile.split("/")[-1].split("-")[-1].split(".")[0]
         if name == "08_26_42":
             f = ROOT.TFile.Open(inputfile)
-            df_dict_kv["30"] = ROOT.RDataFrame("Hits", f)
+            df_dict_kv[30] = ROOT.RDataFrame("Hits", f)
         elif name == "08_37_11":
             f = ROOT.TFile.Open(inputfile)
-            df_dict_kv["35"] = ROOT.RDataFrame("Hits", f)
+            df_dict_kv[35] = ROOT.RDataFrame("Hits", f)
         else:
             print(f"File {inputfile} not recognized, associated with kV = -{i}")
             f = ROOT.TFile.Open(inputfile)
             df_dict_kv[str(-i)] = ROOT.RDataFrame("Hits", f)
             i += 1
-    draw_toa_stacked_per_pixel(df_dict_kv)
-
+    # draw_toa_stacked_per_pixel(df_dict_kv)
+    draw_toa(df_dict_kv)
 
 if __name__ == "__main__":
     main()
