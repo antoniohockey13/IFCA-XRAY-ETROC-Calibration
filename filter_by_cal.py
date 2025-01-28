@@ -7,7 +7,7 @@ import os
 sifca_utils.plotting.set_sifca_style()
 
 # FILTER CONSTANTS 
-SAME_CAL = False
+SAME_CAL = True
 # |cal - max_cal - select_bin| < filter_condition
 filter_condition = 1.5
 select_bin = 0 #+1 right bin, -1 left bin
@@ -93,6 +93,14 @@ def filter_with_same_cal(df, max_cal, filter_condition):
         df_filtered_i.Snapshot(store_tree_name, f"Bin/df{i}.root", store_columns)
 
     df_filtered = ROOT.RDataFrame(store_tree_name, [f"Bin/df{i}.root" for i in max_cal])    
+    
+    for item in os.listdir("Bin"):
+        item_path = os.path.join("Bin", item)
+    
+        # Check if the item is a file or directory
+        if os.path.isfile(item_path) or os.path.islink(item_path):
+            # Remove the file or link
+            os.remove(item_path)
     return df_filtered
 
 
