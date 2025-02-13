@@ -17,10 +17,21 @@ plt.ylabel('Current (uA)')
 plt.title('I-V ETROC ET2-03 PAIR-16')
 plt.show()  
 
+# Plot in the 1st quadrant
+# Change the sign of the currents
+currents_sign = -currents
+# Change the sign of the voltages
+volts_sign = -volts
+plt.plot(volts_sign, currents_sign, '-o')
+plt.xlabel('Voltage (V)')
+plt.ylabel('Current (uA)')
+plt.title('I-V ETROC ET2-03 PAIR-16')
+plt.show()
+
 # Same plot with logarithmic scale
 # Currents in absolute value
 abs_currents = np.abs(currents)
-plt.plot(volts, abs_currents, '-o')
+plt.plot(volts_sign, abs_currents, '-o')
 plt.xlabel('Voltage (V)')
 plt.ylabel('Current (uA)')
 plt.title('I-V ETROC ET2-03 PAIR-16')
