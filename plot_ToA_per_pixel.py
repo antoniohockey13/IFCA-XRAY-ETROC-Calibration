@@ -1,4 +1,3 @@
-import sifca_utils.plotting
 import ROOT
 import sifca_utils
 import click

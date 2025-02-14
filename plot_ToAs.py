@@ -24,7 +24,7 @@ def get_histograms_limits(t_bin):
 def draw_toa_together(df_dict):
     """
     Draw the ToA histograms in the same canvas for the different bins selected
-    Filtering to analogical and digital HV
+    Filtering to analogical and digital LV
 
     Args:
         df_dict (dict): Dictionary with the different dataframes
@@ -35,11 +35,11 @@ def draw_toa_together(df_dict):
     limits[1] = 1.2e4
     # Create canvas
     c = ROOT.TCanvas()
-    # Divide it for analogical HV = 0 and = 1
+    # Divide it for analogical LV = 0 and = 1
     c.Divide(2,1)
     histograms = {0: [], 1: []}
     legends = []
-    # Loop over the analogical HV
+    # Loop over the analogical LV
     for ipad in range(2):
         c.cd(ipad+1)
         # Remove statistics values from the histogram
@@ -49,21 +49,21 @@ def draw_toa_together(df_dict):
         histograms[ipad][-1].Draw()
         histograms[ipad][-1].GetXaxis().SetTitle("ToA/ns")
         histograms[ipad][-1].GetYaxis().SetTitle("Counts")
-        histograms[ipad][-1].SetTitle(f"Analogical HV = {ipad}")
+        histograms[ipad][-1].SetTitle(f"Analogical LV = {ipad}")
         c.Draw()
         opt = "same"
         legends.append(ROOT.TLegend(0.2, 0.8, 0.5, 0.9))
 
         # Loop over the selected bins
         for i, df_i in df_dict.items():
-            # Filter selected dataframe with te Analogical HV
-            df_i_filtered = df_i.Filter(f"Analogical_HV == {ipad}")
+            # Filter selected dataframe with te Analogical LV
+            df_i_filtered = df_i.Filter(f"Analogical_LV == {ipad}")
             # Get t_bin for bin size and compute limits
             t_bin = df_i_filtered.Mean("t_bin").GetValue()
             min_toa, max_toa, bin_number = get_histograms_limits(t_bin)
             # Create histogram
             histograms[ipad].append(df_i_filtered.Histo1D(
-                ("ToA", f"Analogical HV {ipad}", bin_number, min_toa, max_toa), "ToA"
+                ("ToA", f"Analogical LV {ipad}", bin_number, min_toa, max_toa), "ToA"
             ))
             histograms[ipad][-1].SetDirectory(0)
             histograms[ipad][-1].SetLineColor(colors[int(i)+1])
@@ -137,27 +137,27 @@ def draw_toa_stacked(df_dict, df_15):
     
     # Create Canvas
     c = ROOT.TCanvas()
-    # Divide it for analogical HV = 0 and = 1
+    # Divide it for analogical LV = 0 and = 1
     c.Divide(2,1)
     histograms = {0: [], 1: []}
     legends = []
-    stack = {0: ROOT.THStack("stack0", f"Analogical HV 0"), 1: ROOT.THStack("stack1", f"Analogical HV 1")}
+    stack = {0: ROOT.THStack("stack0", f"Analogical LV 0"), 1: ROOT.THStack("stack1", f"Analogical LV 1")}
 
     for ipad in range(2):
         c.cd(ipad+1)
         legends.append(ROOT.TLegend(0.2, 0.8, 0.5, 0.9))
         # Filter df_15
-        df_15_filtered = df_15.Filter(f"Analogical_HV == {ipad}")
+        df_15_filtered = df_15.Filter(f"Analogical_LV == {ipad}")
         # Get t_bin for bin size and compute limits
         t_bin = df_15_filtered.Mean("t_bin").GetValue()
         min_toa, max_toa, bin_number = get_histograms_limits(t_bin)
         # Loop over the selected bins
         for i, df_i in df_dict.items():
-            # Filter selected dataframe with te Analogical HV
-            df_i_filtered = df_i.Filter(f"Analogical_HV == {ipad}")
-            print(f"Analogical HV {ipad}, bin selected: {i}")
+            # Filter selected dataframe with te Analogical LV
+            df_i_filtered = df_i.Filter(f"Analogical_LV == {ipad}")
+            print(f"Analogical LV {ipad}, bin selected: {i}")
             histograms[ipad].append(df_i_filtered.Histo1D(
-                ("ToA", f"Analogical HV {ipad}", bin_number, min_toa, max_toa), "ToA"
+                ("ToA", f"Analogical LV {ipad}", bin_number, min_toa, max_toa), "ToA"
             ).GetValue()
             )
 
@@ -176,7 +176,7 @@ def draw_toa_stacked(df_dict, df_15):
         stack[ipad].Draw("hist fill")
         stack[ipad].GetXaxis().SetTitle("ToA/ns")
         stack[ipad].GetYaxis().SetTitle("Counts")
-        stack[ipad].SetTitle(f"Analogical HV = {ipad}")
+        stack[ipad].SetTitle(f"Analogical LV = {ipad}")
         legends[-1].Draw()
     c.Update()
     input("Press enter to continue...")
@@ -208,13 +208,13 @@ def draw_toa_stacked_per_pixel(df_dict, df_15):
         legends.append(ROOT.TLegend(0.8, 0.8, 0.9, 0.9))
         # Filter df_15
         df_15_filtered = df_15.Filter(f"col == {icol}")
-        # Get t_biAnalogical HV = {ipad}n for bin size and compute limits
+        # Get t_biAnalogical LV = {ipad}n for bin size and compute limits
         t_bin = df_15_filtered.Mean("t_bin").GetValue()
         min_toa, max_toa, bin_number = get_histograms_limits(t_bin)
 
         # Loop over the selected bins
         for i, df_i in df_dict.items():
-            # Filter selected dataframe with te Analogical HV
+            # Filter selected dataframe with te Analogical LV
             df_i_filtered = df_i.Filter(f"col == {icol}")
 
             histograms[icol].append(df_i_filtered.Histo1D(

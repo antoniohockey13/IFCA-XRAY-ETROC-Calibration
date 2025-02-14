@@ -7,14 +7,14 @@ import os
 sifca_utils.plotting.set_sifca_style()
 
 # FILTER CONSTANTS 
-SAME_CAL = True
+SAME_CAL = False
 # |cal - max_cal - select_bin| < filter_condition
-filter_condition = 1.5
+filter_condition = 0.5
 select_bin = 0 #+1 right bin, -1 left bin
 
 # Define store variables
 store_tree_name = "Hits"
-store_columns = {"row", "col", "cal", "ToA", "ToT", "t_bin", "Analogical_HV", "toa_code", "tot_code"}
+store_columns = {"row", "col", "cal", "ToA", "ToT", "t_bin", "Analogical_LV", "toa_code", "tot_code"}
 
 # Set ROOT to batch mode if plots are omitted
 omit_plots = False
@@ -32,12 +32,12 @@ def plot_cal_histograms(df, title = "Cal values before filtering"):
     for i in range(2):
         canvas.cd(i+1)
         ROOT.gPad.SetLogy()
-        hist = df.Filter(f"Analogical_HV == {i}").Histo1D(
-            ("cal", f"Analogical_HV = {i}", 1024, -0.5, 1023.5), "cal"
+        hist = df.Filter(f"Analogical_LV == {i}").Histo1D(
+            ("cal", f"Analogical_LV = {i}", 1024, -0.5, 1023.5), "cal"
             )
         hist.GetXaxis().SetTitle("Cal")
-        hist.GetYaxis().SetTitle(f"Counts Analogical HV={i}")
-        hist.SetTitle(f"Analogical HV = {i}")
+        hist.GetYaxis().SetTitle(f"Counts Analogical LV={i}")
+        hist.SetTitle(f"Analogical LV = {i}")
         hist.Draw()
         histograms.append(hist)
         # -1 Added because the bin number starts at 1 and the cal value at 0
@@ -71,7 +71,7 @@ def filter_with_same_cal(df, max_cal, filter_condition):
     # Filter and define new columns
     print(f"\033[91mFILTER CONDITION = {filter_condition}, bin selected {select_bin}\033[0m")
     for i in max_cal:
-        filter_expr = (f"Analogical_HV == {i} && abs(cal-{max_cal[i]}-({select_bin}))<{filter_condition}")
+        filter_expr = (f"Analogical_LV == {i} && abs(cal-{max_cal[i]}-({select_bin}))<{filter_condition}")
 
         # Apply filter
         df_filtered_i = (df.Filter(filter_expr, "Cal cut"))
@@ -127,7 +127,7 @@ def filter_with_each_cal(df, max_cal, filter_condition):
 
     condition = []
     for i in max_cal:
-        condition.append(f"Analogical_HV == {i} && abs(cal-{max_cal[i]}-({select_bin}))<{filter_condition}")
+        condition.append(f"Analogical_LV == {i} && abs(cal-{max_cal[i]}-({select_bin}))<{filter_condition}")
     filter_expr = " || ".join(condition)
 
     # Apply filter
@@ -168,7 +168,7 @@ def main(inputfiles):
         df = ROOT.RDataFrame("Hits", f)
         
         # Define column to know if analogical or digital voltage supply
-        df = df.Define("Analogical_HV", "floor(col/8)")
+        df = df.Define("Analogical_LV", "floor(col/8)")
         # Draw histogram with Cal values and get max cal bin for each sensor column
         max_cal = plot_cal_histograms(df=df, title="Cal values before filtering")
         print(max_cal)

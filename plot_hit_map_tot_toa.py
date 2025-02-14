@@ -47,7 +47,7 @@ def ToT(df):
     for i in range(2):
         # Delta ToT depends on the floor of the ToT_CODE, it can be 2*t_bin or t_bin, in most of the cases it is 2*t_bin
         # Filter df to select data with the same Cal
-        df_i = df.Filter(f"Analogical_HV == {i}")
+        df_i = df.Filter(f"Analogical_LV == {i}")
 	# Compute histograms limits
         t_bin = df_i.Mean("t_bin").GetValue()
         bin_size = 2*t_bin
@@ -59,11 +59,11 @@ def ToT(df):
 	# Plot histogram
         canvas.cd(i+1)
         hist = df_i.Histo1D(
-            ("ToT", f"Analogical HV {i}", bin_number, min_tot, max_tot), "ToT"
+            ("ToT", f"Analogical LV {i}", bin_number, min_tot, max_tot), "ToT"
         )
         hist.GetXaxis().SetTitle("ToT/ns")
         hist.GetYaxis().SetTitle(f"Counts")
-        hist.SetTitle(f"Analogical HV = {i}")
+        hist.SetTitle(f"Analogical LV = {i}")
         hist.Draw("")
 
         histograms[i] = hist
@@ -89,12 +89,12 @@ def ToT_CODE(df):
     for i in range(2):
         canvas.cd(i+1)
 	# Plot histogram
-        hist = df.Filter(f"Analogical_HV == {i}").Histo1D(
-            ("tot_code", f"Analogical HV {i}", 512, -0.5, 511.5), "tot_code"
+        hist = df.Filter(f"Analogical_LV == {i}").Histo1D(
+            ("tot_code", f"Analogical LV {i}", 512, -0.5, 511.5), "tot_code"
         )
         hist.GetXaxis().SetTitle("ToT_CODE")
         hist.GetYaxis().SetTitle(f"Counts")
-        hist.SetTitle(f"Analogical HV = {i}")
+        hist.SetTitle(f"Analogical LV = {i}")
         hist.Draw()
 
         histograms[i] = hist
@@ -119,7 +119,7 @@ def ToA(df):
 
         # Delta ToA is t_bin
         # Filter df to select data with the same Cal
-        df_i = df.Filter(f"Analogical_HV == {i}")
+        df_i = df.Filter(f"Analogical_LV == {i}")
 	# Compute histogram limits
         t_bin = df_i.Mean("t_bin").GetValue()
         bin_size = 2*t_bin
@@ -131,11 +131,11 @@ def ToA(df):
         canvas.cd(i+1)
 	# Plot histogram
         hist = df_i.Histo1D(
-            ("ToA", f"Analogical HV {i}", bin_number, min_toa, max_toa), "ToA"
+            ("ToA", f"Analogical LV {i}", bin_number, min_toa, max_toa), "ToA"
         )
         hist.GetXaxis().SetTitle("ToA/ns")
         hist.GetYaxis().SetTitle(f"Counts")
-        hist.SetTitle(f"Analogical HV = {i}")
+        hist.SetTitle(f"Analogical LV = {i}")
         hist.Draw()
 
         histograms[i] = hist
@@ -167,12 +167,12 @@ def ToA_CODE(df):
         bin_number = int((max_toa-min_toa)/bin_size)
         print(f"Number of bins: {bin_number}")
 	# Plot histogram
-        hist = df.Filter(f"Analogical_HV == {i}").Histo1D(
-            ("toa_code", f"Analogical HV {i}", bin_number, min_toa, max_toa), "toa_code"
+        hist = df.Filter(f"Analogical_LV == {i}").Histo1D(
+            ("toa_code", f"Analogical LV {i}", bin_number, min_toa, max_toa), "toa_code"
         )
         hist.GetXaxis().SetTitle("ToA_CODE")
         hist.GetYaxis().SetTitle(f"Counts")
-        hist.SetTitle(f"Analogical HV = {i}")
+        hist.SetTitle(f"Analogical LV = {i}")
         hist.Draw()
 
         histograms[i] = hist
@@ -244,12 +244,12 @@ def t_bin(df):
 
     for i in range(2):
         canvas.cd(i+1)
-        hist = df.Filter(f"Analogical_HV == {i}").Histo1D(
-            ("t_bin", f"Analogical HV {i}", 1500, 0., 0.05), "t_bin"
+        hist = df.Filter(f"Analogical_LV == {i}").Histo1D(
+            ("t_bin", f"Analogical LV {i}", 1500, 0., 0.05), "t_bin"
         )
         hist.GetXaxis().SetTitle("t_bin/ns")
         hist.GetYaxis().SetTitle(f"Counts")
-        hist.SetTitle(f"Analogical HV = {i}")
+        hist.SetTitle(f"Analogical LV = {i}")
         hist.Draw()
 
         histograms[i] = hist
@@ -262,7 +262,7 @@ def t_bin(df):
 
 def ToT_together(df):
     """
-    Plot the ToT of the ETROC in ns, plot the analogical and digital HV in the same plot with different colors
+    Plot the ToT of the ETROC in ns, plot the analogical and digital LV in the same plot with different colors
 
     Args:
         df (ROOT.RDataFrame): RDataFrame with the hits
@@ -273,7 +273,7 @@ def ToT_together(df):
     for i in range(2):
         # Delta ToT depends on the floor of the ToT_CODE, it can be 2*t_bin or t_bin, in most of the cases it is 2*t_bin
         # Filter df to select data with the same Cal
-        df_list[i] = df.Filter(f"Analogical_HV == {i}")
+        df_list[i] = df.Filter(f"Analogical_LV == {i}")
 
     histograms = []
     # Create histogram with the limits (change 1e-3 depending the normalisation)
@@ -287,17 +287,17 @@ def ToT_together(df):
     for i, df_i in df_list.items():
 	# Compute binning
         t_bin = df_list[i].Mean("t_bin").GetValue()
-        print(f"Analogical HV {i} t_bin: {t_bin}")
+        print(f"Analogical LV {i} t_bin: {t_bin}")
         bin_size = 2*t_bin
         min_tot = -bin_size/2
         max_tot = 7+bin_size/2
         bin_number = int((max_tot-min_tot)/bin_size)
         histograms.append(df_i.Histo1D(
-            ("ToT", f"Analogical HV {i}", bin_number, min_tot, max_tot), "ToT"
+            ("ToT", f"Analogical LV {i}", bin_number, min_tot, max_tot), "ToT"
         ))
         histograms[-1].SetDirectory(0)
         histograms[-1].SetLineColor(colors[i])
-        legend.AddEntry(histograms[-1].GetValue(), f"Analogical HV {i}", "l")
+        legend.AddEntry(histograms[-1].GetValue(), f"Analogical LV {i}", "l")
         histograms[-1].DrawNormalized(opt, 1.0)
     legend.Draw()
     if not omit_plots:
@@ -400,17 +400,17 @@ def main(inputfile):
     hit_map(df)
 
     # Plot the ToT
-    # ToT(df)
+    ToT(df)
     # ToT_CODE(df)
 
     # Plot the ToT together
-    # ToT_together(df)
+    ToT_together(df)
     # Plot the ToA
     toa_histograms = ToA(df)
-    fit_ToA_to_sinusoidal(toa_histograms)
+    # fit_ToA_to_sinusoidal(toa_histograms)
     # ToA_CODE(df)
-    toa_pixel_histograms = ToA_pixel(df)
-    fit_ToA_to_sinusoidal(toa_pixel_histograms)
+    # toa_pixel_histograms = ToA_pixel(df)
+    # fit_ToA_to_sinusoidal(toa_pixel_histograms)
 
     # Plot the t_bin
     # t_bin(df)

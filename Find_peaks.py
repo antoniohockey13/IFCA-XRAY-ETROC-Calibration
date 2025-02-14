@@ -20,7 +20,7 @@ def ToT(df):
     for i in range(2):
         # Delta ToT depends on the floor of the ToT_CODE, it can be 2*t_bin or t_bin, in most of the cases it is 2*t_bin
         # Filter df to select data with the same Cal
-        df_i = df.Filter(f"Analogical_HV == {i}")
+        df_i = df.Filter(f"Analogical_LV == {i}")
         t_bin = df_i.Mean("t_bin").GetValue()
         bin_size = 2*t_bin
         # Use -bin_size/2 ti centre the first bin
@@ -30,7 +30,7 @@ def ToT(df):
         bin_number = int((max_tot-min_tot)/bin_size)
         print(f"Size of the bins: {bin_size}")
         hist = df_i.Histo1D(
-            ("ToT", f"Analogical HV {i}", bin_number, min_tot, max_tot), "ToT"
+            ("ToT", f"Analogical LV {i}", bin_number, min_tot, max_tot), "ToT"
         )
         histograms.append(hist)
     return histograms
@@ -79,7 +79,7 @@ def main(inputfile):
         tot_i.Draw("PE")
         histograms[i].GetXaxis().SetTitle("ToT/ns")
         histograms[i].GetYaxis().SetTitle("Counts")
-        histograms[i].SetTitle(f"Analogical HV = {i}")
+        histograms[i].SetTitle(f"Analogical LV = {i}")
 
         # Find the peaks
         peak_pos = find_peaks(tot_i)
