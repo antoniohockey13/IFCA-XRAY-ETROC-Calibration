@@ -31,6 +31,33 @@ def hit_map(df):
         # Keep the canvas open until user input
         input("Press enter to continue...")
     return hit_map
+def plot_cal(df):
+    """
+    Plot the Cal of the ETROC
+    
+    Args:
+        df (ROOT.RDataFrame): RDataFrame with the hits
+    """
+    canvas = ROOT.TCanvas()
+    canvas.Divide(2, 1)
+
+    histograms = {}
+    for i in range(2):
+        canvas.cd(i+1)
+        hist = df.Filter(f"Analogical_LV == {i}").Histo1D(
+            ("cal", f"Analogical LV {i}", 1024, -0.5, 1023.5), "cal"
+        )
+        hist.GetXaxis().SetTitle("Cal")
+        hist.GetYaxis().SetTitle(f"Counts")
+        hist.SetTitle(f"Analogical LV = {i}")
+        hist.Draw()
+
+        histograms[i] = hist
+
+    canvas.Update()
+    if not omit_plots:
+        # Keep the canvas open until user input
+        input("Press Enter to continue...")
 
 def ToT(df):
     """
@@ -387,18 +414,17 @@ def fit_ToA_to_sinusoidal(histograms):
         input("Press Enter to continue...")
 
 @click.command()
-@click.argument('inputfile', nargs=1)
-def main(inputfile):
+@click.argument('inputfiles', nargs=-1)
+def main(inputfiles):
     # Open the file
-    if inputfile.split('.')[-1] != 'root':
-        raise ValueError(f"Input file must have .root extension and it has .{inputfile.split('.')[-1]}")
-    
-    f = ROOT.TFile.Open(inputfile)
-    df = ROOT.RDataFrame("Hits", f)
+    if inputfiles[0].split('.')[-1] != 'root':
+        raise ValueError(f"Input file must have .root extension and it has .{inputfiles.split('.')[-1]}")
 
+    df = ROOT.RDataFrame("Hits", list(inputfiles))
     # Plot the hit map
     hit_map(df)
-
+    # Plot the Cal
+    plot_cal(df)
     # Plot the ToT
     ToT(df)
     # ToT_CODE(df)
