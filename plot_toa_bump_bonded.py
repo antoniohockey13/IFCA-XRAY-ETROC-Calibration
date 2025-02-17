@@ -4,7 +4,12 @@ import numpy as np
 import sifca_utils
 sifca_utils.plotting.set_sifca_style()
 
-colors = [ROOT.kRed, ROOT.kBlue, ROOT.kGreen]
+colors = [
+    ROOT.kRed+1, ROOT.kRed-7, ROOT.kBlue+1, ROOT.kBlue-7, ROOT.kGreen+2, ROOT.kGreen-5,
+    ROOT.kMagenta+1, ROOT.kMagenta-5, ROOT.kOrange+2, ROOT.kOrange-3, ROOT.kCyan+1, ROOT.kCyan-6,
+    ROOT.kYellow+2, ROOT.kYellow-7, ROOT.kPink+1, ROOT.kViolet+1, ROOT.kAzure+2, ROOT.kSpring+5, 
+    ROOT.kTeal+3, ROOT.kBlack, ROOT.kGray+2
+]
 
 def get_histograms_limits(t_bin):
     """
@@ -136,9 +141,7 @@ def draw_toa_normalised(df_dict):
 @click.argument("inputfiles", nargs=-1)
 def main(inputfiles):
     """
-    Main function to call the plotting function. Draws the ToA histogramas for the different
-    kV used (prepared for 30 and 35 kV).
-
+    Main function to call the plotting function. Draws the ToA histogramas for the different runs
     Args:
         inputfiles (list): List with the input files format expected: */*-Time.*
 
