@@ -62,7 +62,7 @@ def draw_toa_stacked(df_dict):
             )
 
             histograms[i_LV][-1].SetDirectory(0)
-            legends[-1].AddEntry(histograms[i_LV][-1], f"Run {i}", "l")
+            legends[-1].AddEntry(histograms[i_LV][-1], f"{i}", "l")
             histograms[i_LV][-1].SetLineColor(colors[i_color])
 
             # Set fill characteristic
@@ -124,10 +124,11 @@ def draw_toa_normalised(df_dict):
             )
             histograms[i_LV][-1].SetDirectory(0)
             histograms[i_LV][-1].SetLineColor(colors[i_color])
-            legends[-1].AddEntry(histograms[i_LV][-1], f"Run {i}", "l")
-            histograms[i_LV][-1].DrawNormalized(opt)
+            histograms[i_LV][-1].SetMarkerColor(colors[i_color])
+            legends[-1].AddEntry(histograms[i_LV][-1], f"{i}", "l")
+            histograms[i_LV][-1].DrawNormalized(opt+"P")
             i_color += 1
-        legends[-1].Draw()
+        legends[-1].Draw("")
     c.Update()
     input("Press enter to continue...")
 
@@ -140,27 +141,20 @@ def main(inputfiles):
 
     Args:
         inputfiles (list): List with the input files format expected: */*-Time.*
-        If Time = 11_23_15, the run is 1, if Time = 11_36_37, the run is 2 and 
-        if Time = 12_02_40, the run is 3
+
         """
     df_dict_run = {}
-    i = 1
     for inputfile in inputfiles:
-        name = inputfile.split("/")[-1].split("-")[-1].split(".")[0]
-        if name == "11_23_15":
-            f = ROOT.TFile.Open(inputfile)
-            df_dict_run[1] = ROOT.RDataFrame("Hits", f)
-        elif name == "11_36_37":
-            f = ROOT.TFile.Open(inputfile)
-            df_dict_run[2] = ROOT.RDataFrame("Hits", f)
-        elif name == "12_02_40":
-            f = ROOT.TFile.Open(inputfile)
-            df_dict_run[3] = ROOT.RDataFrame("Hits", f)
-        else:
-            print(f"File {inputfile} not recognized, associated with kV = -{i}")
-            f = ROOT.TFile.Open(inputfile)
-            df_dict_run[str(-i)] = ROOT.RDataFrame("Hits", f)
-            i += 1
+        name = inputfile.split("/")[-1].split("-")
+        filter = name[0].split("_")[-1]
+        if filter == "":
+            filter = "-"+name[1]
+        date = name[-2]
+        hour = name[-1].split(".")[0]
+        name = f"{date}-{hour}__{filter}"
+        f = ROOT.TFile.Open(inputfile)
+        df_dict_run[name] = ROOT.RDataFrame("Hits", f)
+    
     draw_toa_stacked(df_dict_run)
     draw_toa_normalised(df_dict_run)
 if __name__ == "__main__":
