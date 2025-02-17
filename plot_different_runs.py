@@ -65,7 +65,12 @@ def plot_cal_normalised(df_dict):
     c.SetLogy()
     input("Press enter to continue...")
 
-def plot_cal_different_pads(df_dict):
+def plot_cal_different_graphs(df_dict):
+    """
+    Plot calibration for different runs in different graphs
+    Args:
+    df_dict: dict with the dataframes of the different runs
+    """
     n_pads = len(df_dict)
     c = ROOT.TCanvas()
     c.Divide(int(np.ceil(n_pads/2)),2)
@@ -73,13 +78,20 @@ def plot_cal_different_pads(df_dict):
     for i, (name, df) in enumerate(df_dict.items()):
         c.cd(i+1)
         ROOT.gPad.SetLogy()
-        hist.append(df.Histo1D(("cal", f"{name}", 1024, -0.5, 1023.5), "cal"))
+        hist.append(df.Filter("Analogical_LV == 0").Histo1D(("cal", f"{name}", 1024, -0.5, 1023.5), "cal"))
         hist[-1].SetDirectory(0)
         hist[-1].GetXaxis().SetTitle("Cal")
         hist[-1].GetYaxis().SetTitle("Counts")
         hist[-1].SetTitle(f"{name}")
         hist[-1].Draw()
         hist[-1].SetLineColor(colors[i])
+        # -1 Added because the bin number starts at 1 and the cal value at 0
+        max_cal_bins = hist[-1].GetMaximumBin()-1
+        # Text in the plot
+        text = ROOT.TLatex()
+        text.SetNDC()
+        text.SetTextSize(0.04)
+        text.DrawLatex(0.6, 0.7, f"Max cal = {max_cal_bins}")
     c.Update()
     c.Draw()
     input("Press enter to continue...")
@@ -99,7 +111,7 @@ def main(inputfiles):
         # Define new column 
         df_dict_run[name] = df_dict_run[name].Define("Analogical_LV", "floor(col/8)")
 
-    plot_cal_different_pads(df_dict_run)
+    plot_cal_different_graphs(df_dict_run)
     plot_cal_normalised(df_dict_run)
 
 
