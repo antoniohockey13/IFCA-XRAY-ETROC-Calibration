@@ -5,7 +5,7 @@ import sifca_utils
 sifca_utils.plotting.set_sifca_style()
 
 colors = [
-    ROOT.kRed+1, ROOT.kRed-7, ROOT.kBlue+1, ROOT.kBlue-7, ROOT.kGreen+2, ROOT.kGreen-5,
+    ROOT.kRed+1, ROOT.kBlue+1,ROOT.kGreen+2, ROOT.kRed-7, ROOT.kBlue-7, ROOT.kGreen-5,
     ROOT.kMagenta+1, ROOT.kMagenta-5, ROOT.kOrange+2, ROOT.kOrange-3, ROOT.kCyan+1, ROOT.kCyan-6,
     ROOT.kYellow+2, ROOT.kYellow-7, ROOT.kPink+1, ROOT.kViolet+1, ROOT.kAzure+2, ROOT.kSpring+5, 
     ROOT.kTeal+3, ROOT.kBlack, ROOT.kGray+2
@@ -34,108 +34,120 @@ def draw_toa_stacked(df_dict):
     """
     # Create Canvas
     c = ROOT.TCanvas()
-    # Divide it for each pixel
-    c.Divide(2,1)
-    histograms = {0: [], 1: []}
-    legends = []
-    stack = {
-        0: ROOT.THStack("stack0", f"Analogical LV = 0"), 
-        1: ROOT.THStack("stack1", f"Analogical LV = 1"),
-        }
+    histograms = []
+    stack = ROOT.THStack("stack", f"")
 
-    for i_LV in range(2):
-        c.cd(i_LV+1)
-        legends.append(ROOT.TLegend(0.7, 0.8, 0.9, 0.9))
+    legend = (ROOT.TLegend(0.7, 0.8, 0.9, 0.9))
         
-        # Loop over dfs
-        i_color = 0
-        t_bin = []
-        df_filtered = {}
-        for i, df_i in df_dict.items():
-            # Filter selected dataframe with the LV
-            df_filtered[i] = df_i.Filter(f"Analogical_LV == {i_LV}")
-            
-            # Compute histogram limits
-            t_bin.append(df_filtered[i].Mean("t_bin").GetValue())
-        
-        min_toa, max_toa, bin_number = get_histograms_limits(np.mean(np.array(t_bin)))
+    # Loop over dfs
+    t_bin = []
+    # Compute histogram limits
+    for df_i in df_dict.values():
+        t_bin.append(df_i.Mean("t_bin").GetValue())
+    min_toa, max_toa, bin_number = get_histograms_limits(np.mean(np.array(t_bin)))
+    for i_color, (i, df_i) in enumerate(df_dict.items()):
 
-        for i, df_i_filtered in df_filtered.items():
-            histograms[i_LV].append(df_i_filtered.Histo1D(
-                ("ToA", f"Analogical LV = {i_LV}", bin_number, min_toa, max_toa), "ToA"
+        # Create histogram
+        histograms.append(df_i.Histo1D(
+            ("ToA", f"", bin_number, min_toa, max_toa), "ToA"
             ).GetValue()
             )
 
-            histograms[i_LV][-1].SetDirectory(0)
-            legends[-1].AddEntry(histograms[i_LV][-1], f"{i}", "l")
-            histograms[i_LV][-1].SetLineColor(colors[i_color])
+        histograms[-1].SetDirectory(0)
+        legend.AddEntry(histograms[-1], f"{i}", "l")
+        histograms[-1].SetLineColor(colors[i_color])
 
-            # Set fill characteristic
-            histograms[i_LV][-1].SetFillColorAlpha(colors[i_color], 1)
-            histograms[i_LV][-1].SetFillStyle(3001)
+        # Set fill characteristic
+        histograms[-1].SetFillColorAlpha(colors[i_color], 1)
+        histograms[-1].SetFillStyle(3001)
 
-            i_color += 1
-
-        # Sort histograms by the number of entries first the one with more entries
-        histograms[i_LV].sort(key=lambda x: x.GetEntries(), reverse=True)
-        for i, histo_i in enumerate(histograms[i_LV]):
-            stack[i_LV].Add(histo_i)
-        
-        stack[i_LV].Draw("hist fill")
-        stack[i_LV].GetXaxis().SetTitle("ToA/ns")
-        stack[i_LV].GetYaxis().SetTitle("Counts")
-        stack[i_LV].SetTitle(f"Analogical LV {i_LV}")
-        legends[-1].Draw()
+    # Sort histograms by the number of entries first the one with more entries
+    histograms.sort(key=lambda x: x.GetEntries(), reverse=True)
+    for histo_i in (histograms):
+        stack.Add(histo_i)
+    
+    stack.Draw("hist fill")
+    stack.GetXaxis().SetTitle("ToA/ns")
+    stack.GetYaxis().SetTitle("Counts")
+    stack.SetTitle(f"")
+    legend.Draw()
     c.Update()
 
     input("Press enter to continue...")
 
 def draw_toa_normalised(df_dict):
     c = ROOT.TCanvas()
-    c.Divide(2,1)
-    histograms = {0 : [], 1: []}
-    legends = []
-    for i_LV in range(2):
-        c.cd(i_LV+1)
+    histograms = []
+    
+    # Remove statistics values
+    ROOT.gStyle.SetOptStat(00000)
+    # Create limits histogram 
+    # Limits:
+    # filter 0 : 7e-3
+    # filter 1 : 0.05
+    # filter -1 : 0.04
+    histograms.append(ROOT.TH2F("limits", "", 1, 0, 14, 1, 1e-3, 7e-3))
+    histograms[-1].Draw()
+    histograms[-1].GetXaxis().SetTitle("ToA/ns")
+    histograms[-1].GetYaxis().SetTitle("Counts")
+    histograms[-1].SetTitle(f"")
+    c.Draw()
+    opt = "same"
+    legend = ROOT.TLegend(0.2, 0.8, 0.5, 0.9)
 
-        # Remove statistics values
-        ROOT.gStyle.SetOptStat(00000)
-        # Create limits histogram 
-        # Limits:
-        # filter 0 : 7e-3
-        # filter 1 : 0.05
-        # filter -1 : 0.04
-        histograms[i_LV].append(ROOT.TH2F("limits", "", 1, 0, 14, 1, 1e-3, 7e-3))
-        histograms[i_LV][-1].Draw()
-        histograms[i_LV][-1].GetXaxis().SetTitle("ToA/ns")
-        histograms[i_LV][-1].GetYaxis().SetTitle("Counts")
-        histograms[i_LV][-1].SetTitle(f"Analogical LV = {i_LV}")
-        c.Draw()
-        opt = "same"
-        legends.append(ROOT.TLegend(0.2, 0.8, 0.5, 0.9))
-
-        # Count to select color for each voltage
-        i_color = 0
-        # Loop over dfs to plot them
-        for i, df_i in df_dict.items():
-            df_icol_filtered = df_i.Filter(f"Analogical_LV == {i_LV}")
-            # Compute histogram limits
-            t_bin = df_icol_filtered.Mean("t_bin").GetValue()
-            min_toa, max_toa, bin_number = get_histograms_limits(t_bin)
-            # Create histogram
-            histograms[i_LV].append(df_icol_filtered.Histo1D(
-                ("ToA", f"Analogical LV {i_LV}", bin_number, min_toa, max_toa), "ToA"
+    # Loop over dfs to plot them
+    for i_color, (i, df_i) in enumerate(df_dict.items()):
+        # Compute binning
+        t_bin = df_i.Mean("t_bin").GetValue()
+        min_toa, max_toa, bin_number = get_histograms_limits(t_bin)
+        # Create histogram
+        histograms.append(df_i.Histo1D(
+                ("ToA", f"", bin_number, min_toa, max_toa), "ToA"
             ).GetValue()
             )
-            histograms[i_LV][-1].SetDirectory(0)
-            histograms[i_LV][-1].SetLineColor(colors[i_color])
-            histograms[i_LV][-1].SetMarkerColor(colors[i_color])
-            legends[-1].AddEntry(histograms[i_LV][-1], f"{i}", "l")
-            histograms[i_LV][-1].DrawNormalized(opt+"P")
-            i_color += 1
-        legends[-1].Draw("")
-    c.Update()
+        histograms[-1].SetDirectory(0)
+        histograms[-1].SetLineColor(colors[i_color])
+        histograms[-1].SetMarkerColor(colors[i_color])
+        legend.AddEntry(histograms[-1], f"{i}", "l")
+        histograms[-1].DrawNormalized(opt+"P")
+        legend.Draw()
+    c.Draw()
     input("Press enter to continue...")
+
+def draw_toa_substraction(df_dict):
+    c = ROOT.TCanvas()
+    histograms = []
+    draw_hist = []
+
+    # Loop over df to select binning as the mean
+    t_bin = []
+    for df_i in df_dict.values():
+        t_bin.append(df_i.Mean("t_bin").GetValue())
+    t_bin = np.mean(np.array(t_bin))
+    min_toa, max_toa, bin_number = get_histograms_limits(t_bin)
+
+    # Loop over df to create histograms
+    for df_i in df_dict.values():
+        h = df_i.Histo1D(
+            ("ToA", f"", bin_number, min_toa, max_toa), "ToA"
+            ).GetValue()
+        h.SetDirectory(0)
+        # Normalize histogram
+        h.Scale(1/h.Integral())
+        histograms.append(h)
+    # Substract and draw histograms
+    draw_hist.append(histograms[0].Clone())
+    # Subtract normalized histograms
+    draw_hist[-1].Add(histograms[1], -1)  
+    draw_hist[-1].SetDirectory(0)
+    draw_hist[-1].SetTitle(f"Substraction")
+    draw_hist[-1].Draw()
+    draw_hist[-1].GetXaxis().SetTitle("ToA/ns")
+    draw_hist[-1].GetYaxis().SetTitle("Counts")
+    
+    c.Draw()
+    input("Press enter to continue...")
+
 
 @click.command()
 @click.argument("inputfiles", nargs=-1)
@@ -145,7 +157,9 @@ def main(inputfiles):
     Args:
         inputfiles (list): List with the input files format expected: */*-Time.*
 
-        """
+    """
+    Analogical_LV = 0
+    print(f"Filter to Analogical_LV = {Analogical_LV}")
     df_dict_run = {}
     for inputfile in inputfiles:
         name = inputfile.split("/")[-1].split("-")
@@ -156,10 +170,12 @@ def main(inputfiles):
         hour = name[-1].split(".")[0]
         name = f"{date}-{hour}__{filter}"
         f = ROOT.TFile.Open(inputfile)
-        df_dict_run[name] = ROOT.RDataFrame("Hits", f)
+        df_dict_run[name] = ROOT.RDataFrame("Hits", f).Filter(f"Analogical_LV == {Analogical_LV}")
     
     draw_toa_stacked(df_dict_run)
     draw_toa_normalised(df_dict_run)
+    if len(df_dict_run) == 2:
+        draw_toa_substraction(df_dict_run)
 if __name__ == "__main__":
     main()
     

@@ -147,7 +147,7 @@ def ToA(df):
         # Delta ToA is t_bin
         # Filter df to select data with the same Cal
         df_i = df.Filter(f"Analogical_LV == {i}")
-	# Compute histogram limits
+        # Compute histogram limits
         t_bin = df_i.Mean("t_bin").GetValue()
         bin_size = 2*t_bin
         min_toa = -bin_size/2
