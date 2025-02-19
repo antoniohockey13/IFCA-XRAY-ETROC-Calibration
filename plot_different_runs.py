@@ -73,12 +73,15 @@ def plot_cal_different_graphs(df_dict):
     """
     n_pads = len(df_dict)
     c = ROOT.TCanvas()
-    c.Divide(int(np.ceil(n_pads/2)),2)
+    if n_pads == 2:
+        c.Divide(2,1)
+    else:
+        c.Divide(int(np.ceil(n_pads/2)),2)
     hist = []
     for i, (name, df) in enumerate(df_dict.items()):
         c.cd(i+1)
         ROOT.gPad.SetLogy()
-        hist.append(df.Filter("Analogical_LV == 0").Histo1D(("cal", f"{name}", 1024, -0.5, 1023.5), "cal"))
+        hist.append(df.Filter("Analogical_LV == 1").Histo1D(("cal", f"{name}", 1024, -0.5, 1023.5), "cal"))
         hist[-1].SetDirectory(0)
         hist[-1].GetXaxis().SetTitle("Cal")
         hist[-1].GetYaxis().SetTitle("Counts")
