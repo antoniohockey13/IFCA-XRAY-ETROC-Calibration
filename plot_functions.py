@@ -1,15 +1,21 @@
 import ROOT
-import click
-import sifca_utils
 import utils as u
-
-sifca_utils.plotting.set_sifca_style()
+import numpy as np
 
 # Map sensor positions
 SENSOR_POS = {"6": 1, "7": 3, "8": 4, "9": 2}
 
+colors = [
+    ROOT.kRed+1, ROOT.kBlue+1,ROOT.kGreen+2, ROOT.kRed-7, ROOT.kBlue-7, ROOT.kGreen-5,
+    ROOT.kMagenta+1, ROOT.kMagenta-5, ROOT.kOrange+2, ROOT.kOrange-3, ROOT.kCyan+1, ROOT.kCyan-6,
+    ROOT.kYellow+2, ROOT.kYellow-7, ROOT.kPink+1, ROOT.kViolet+1, ROOT.kAzure+2, ROOT.kSpring+5, 
+    ROOT.kTeal+3, ROOT.kBlack, ROOT.kGray+2
+]
+
+
 ######################################################
-# General Functions for the ETROC                    #
+# General Functions for the ETROC in a single canvas #
+# Not to compare plots                               #
 ######################################################
 
 def hit_map(df):
@@ -263,3 +269,64 @@ def Cal_pixel(df):
     # Keep the canvas open until user input
     input("Press Enter to continue...")
     return histograms
+
+
+######################################################
+# Stacked plots                                      #
+# Functions to compare different runs/cuts           #
+######################################################
+### TO DO Check function
+
+def draw_ToA_stacked(df_dict):
+    """
+    Draw the ToA histograms in the same canvas stacked for the
+    different runs
+    df_dict (dict): Dictionary with the different dataframes
+        keys: Name of the run
+        values: RDataFrame with the hits
+    """
+    # Create Canvas
+    c = ROOT.TCanvas()
+    histograms = []
+    stack = ROOT.THStack("stack", f"")
+
+    legend = (ROOT.TLegend(0.7, 0.8, 0.9, 0.9))
+        
+    # Loop over dfs
+    t_bin = []
+    # Compute histogram limits
+    for df_i in df_dict.values():
+        if "t_bin" not in df_i.GetColumnNames():
+            df_i = u.compute_tbin(df_i)
+        t_bin.append(df_i.Mean("t_bin").GetValue())    
+    min_toa, max_toa, bin_number = u.get_ToA_histograms_limits(np.mean(np.array(t_bin)))
+    
+    for i_color, (i, df_i) in enumerate(df_dict.items()):
+        if "ToA" not in df_i.GetColumnNames():
+            df_i = u.compute_ToA(df_i)
+        
+        # Create histogram
+        histograms.append(df_i.Histo1D(
+            ("ToA", f"", bin_number, min_toa, max_toa), "ToA"
+            ).GetValue()
+            )
+
+        histograms[-1].SetDirectory(0)
+        legend.AddEntry(histograms[-1], f"{i}", "l")
+        histograms[-1].SetLineColor(colors[i_color])
+
+        # Set fill characteristic
+        histograms[-1].SetFillColorAlpha(colors[i_color], 1)
+        histograms[-1].SetFillStyle(3001)
+    # Sort histograms by the number of entries first the one with more entries
+    histograms.sort(key=lambda x: x.GetEntries(), reverse=True)
+    for histo_i in (histograms):
+        stack.Add(histo_i)
+    stack.Draw("hist fill")
+    stack.GetXaxis().SetTitle("ToA/ns")
+    stack.GetYaxis().SetTitle("Counts")
+    stack.SetTitle(f"")
+    legend.Draw()
+    c.Update()
+
+    input("Press enter to continue...")
