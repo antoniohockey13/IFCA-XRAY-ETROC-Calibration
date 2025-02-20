@@ -6,6 +6,8 @@ ns = 1
 T3 = 3.125* ns
 # Constant value dependant on the clock configuration 40MHZ --> 12.5 ns
 T_WINDOW = 12.5 * ns
+
+
 def get_max_cal(df: ROOT.RDataFrame):
     """
     Get the most repeated cal value in the dataframe
