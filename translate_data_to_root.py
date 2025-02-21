@@ -2,6 +2,7 @@ import ROOT
 import click
 import os
 from array import array
+from tqdm import tqdm
 
 def create_array():
     """
@@ -68,7 +69,7 @@ def main(inputfiles):
         hits_tree.Branch(var_name, var, f"{var_name}/I")
 
 
-    for inputfile in inputfiles:
+    for inputfile in tqdm(inputfiles):
         with open(inputfile) as f:
             lines = f.readlines()
             iline = 0
@@ -100,6 +101,7 @@ def main(inputfiles):
     hits_tree.Write()
     hits.Write()
     hits.Close()
+    print(f"File saved in Root_files/{folder}.root")
 
 if __name__ == '__main__':
     try:
