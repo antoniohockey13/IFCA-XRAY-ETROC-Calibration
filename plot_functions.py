@@ -401,37 +401,43 @@ def draw_ToA_substraction(df_dict):
         keys: Name of the run
         values: RDataFrame with the hits
     """
-    c = ROOT.TCanvas()
-    histograms = []
-    draw_hist = []
+    try:
+        if len(df_dict) != 2:
+            raise ValueError("Only two files can be substracted")
+        c = ROOT.TCanvas()
+        histograms = []
+        draw_hist = []
 
-    # Loop over df to select binning as the mean
-    t_bin = []
-    for df_i in df_dict.values():
-        if "t_bin" not in df_i.GetColumnNames():
-            df_i = u.compute_tbin(df_i)
-        t_bin.append(df_i.Mean("t_bin").GetValue())
-    t_bin = np.mean(np.array(t_bin))
-    min_toa, max_toa, bin_number = u.get_ToA_histograms_limits(t_bin)
+        # Loop over df to select binning as the mean
+        t_bin = []
+        for df_i in df_dict.values():
+            if "t_bin" not in df_i.GetColumnNames():
+                df_i = u.compute_tbin(df_i)
+            t_bin.append(df_i.Mean("t_bin").GetValue())
+        t_bin = np.mean(np.array(t_bin))
+        min_toa, max_toa, bin_number = u.get_ToA_histograms_limits(t_bin)
 
-    # Loop over df to create histograms
-    for df_i in df_dict.values():
-        h = df_i.Histo1D(
-            ("ToA", f"", bin_number, min_toa, max_toa), "ToA"
-            ).GetValue()
-        h.SetDirectory(0)
-        # Normalize histogram
-        h.Scale(1/h.Integral())
-        histograms.append(h)
-    # Substract and draw histograms
-    draw_hist.append(histograms[0].Clone())
-    # Subtract normalized histograms
-    draw_hist[-1].Add(histograms[1], -1)  
-    draw_hist[-1].SetDirectory(0)
-    draw_hist[-1].SetTitle(f"Substraction")
-    draw_hist[-1].Draw()
-    draw_hist[-1].GetXaxis().SetTitle("ToA/ns")
-    draw_hist[-1].GetYaxis().SetTitle("Counts")
-    
-    c.Draw()
-    input("Press enter to continue...")
+        # Loop over df to create histograms
+        for df_i in df_dict.values():
+            h = df_i.Histo1D(
+                ("ToA", f"", bin_number, min_toa, max_toa), "ToA"
+                ).GetValue()
+            h.SetDirectory(0)
+            # Normalize histogram
+            h.Scale(1/h.Integral())
+            histograms.append(h)
+        # Substract and draw histograms
+        draw_hist.append(histograms[0].Clone())
+        # Subtract normalized histograms
+        draw_hist[-1].Add(histograms[1], -1)  
+        draw_hist[-1].SetDirectory(0)
+        draw_hist[-1].SetTitle(f"Substraction")
+        draw_hist[-1].Draw()
+        draw_hist[-1].GetXaxis().SetTitle("ToA/ns")
+        draw_hist[-1].GetYaxis().SetTitle("Counts")
+        
+        c.Draw()
+        input("Press enter to continue...")
+    except ValueError as e:
+        print(f"\033[91mError: {e}\033[0m")
+        return
