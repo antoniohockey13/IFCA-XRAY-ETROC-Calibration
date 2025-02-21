@@ -6,9 +6,6 @@ import plot_functions as pf
 
 sifca_utils.plotting.set_sifca_style()
 
-
-
-
 ######################################################
 # Main function                                     #
 ######################################################
@@ -36,11 +33,16 @@ def main(inputfiles):
         # Filter in cal
         max_cal_dict[name] = u.get_max_cal(df)
         df = df.Filter(f"abs(cal-{max_cal_dict[name]})<0.5")
+        # Compute needed variables
+        df = u.compute_tbin(df)
+        df = u.compute_ToA(df)
+
         # Save the dataframe
         df_dict[name] = df
     
     pf.draw_ToA_stacked(df_dict)
-    
+    pf.draw_ToA_normalised(df_dict, y_limit=5e-3)
+    pf.draw_ToA_substraction(df_dict)
 if __name__ == "__main__":
     try:
         main()

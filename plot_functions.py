@@ -42,7 +42,7 @@ def hit_map(df):
     return hit_map
 
 
-def plot_cal(df):
+def plot_cal(df, color = ROOT.kBlack):
     """
     Plot the Cal of the ETROC
     
@@ -56,13 +56,20 @@ def plot_cal(df):
     )
     hist.GetXaxis().SetTitle("Cal")
     hist.GetYaxis().SetTitle(f"Counts")
+    hist.SetLineColor(color)
     hist.SetTitle("")
     hist.Draw()
-
+    # Add text with the max cal
+    max_cal = u.get_max_cal(df)
+    text = ROOT.TLatex()
+    text.SetNDC()
+    text.SetTextSize(0.03)
+    text.DrawLatex(0.7, 0.8, f"Max Cal: {max_cal}")
     canvas.Update()
     
     # Keep the canvas open until user input
     input("Press Enter to continue...")
+    return hist
 
 def ToT(df):
     """
@@ -329,4 +336,102 @@ def draw_ToA_stacked(df_dict):
     legend.Draw()
     c.Update()
 
+    input("Press enter to continue...")
+
+
+def draw_ToA_normalised(df_dict, y_limit:float=0.05):
+    """
+    Draw the ToA histograms in the same canvas normalised for the
+    different runs
+    df_dict (dict): Dictionary with the different dataframes
+        keys: Name of the run
+        values: RDataFrame with the hits
+    y_limit (float): Y limit for the histograms
+    """
+
+    c = ROOT.TCanvas()
+    histograms = []
+    
+    # Remove statistics values
+    ROOT.gStyle.SetOptStat(00000)
+    # Create limits histogram 
+    # Limits:
+    # filter 0 : 7e-3
+    # filter 1 : 0.05
+    # filter -1 : 0.04
+    histograms.append(ROOT.TH2F("limits", "", 1, 0, 14, 1, 1e-3, y_limit))
+    histograms[-1].GetXaxis().SetTitle("ToA/ns")
+    histograms[-1].GetYaxis().SetTitle("Counts")
+    histograms[-1].SetTitle(f"")
+    histograms[-1].Draw()
+
+    legend = ROOT.TLegend(0.2, 0.8, 0.5, 0.9)
+    # Loop over df to select binning as the mean
+    t_bin = []
+    for df_i in df_dict.values():
+        if "t_bin" not in df_i.GetColumnNames():
+            df_i = u.compute_tbin(df_i)
+        t_bin.append(df_i.Mean("t_bin").GetValue())
+    min_toa, max_toa, bin_number = u.get_ToA_histograms_limits(np.mean(np.array(t_bin)))
+
+    # Loop over dfs to generate histograms and plot them
+    for i_color, (i, df_i) in enumerate(df_dict.items()):
+        # Compue ToA if not present
+        if "ToA" not in df_i.GetColumnNames():
+            df_i = u.compute_ToA(df_i)
+        # Create histogram
+        histograms.append(df_i.Histo1D(
+                ("ToA", f"", bin_number, min_toa, max_toa), "ToA"
+            ).GetValue()
+            )
+        histograms[-1].SetDirectory(0)
+        histograms[-1].SetLineColor(colors[i_color])
+        histograms[-1].SetMarkerColor(colors[i_color])
+        legend.AddEntry(histograms[-1], f"{i}", "l")
+        histograms[-1].DrawNormalized("same")
+    legend.Draw()
+    c.Draw()
+    input("Press enter to continue...")
+
+
+def draw_ToA_substraction(df_dict):
+    """
+    Draw the substraction of the ToA histograms for the different runs
+    df_dict (dict): Dictionary with the different dataframes
+        keys: Name of the run
+        values: RDataFrame with the hits
+    """
+    c = ROOT.TCanvas()
+    histograms = []
+    draw_hist = []
+
+    # Loop over df to select binning as the mean
+    t_bin = []
+    for df_i in df_dict.values():
+        if "t_bin" not in df_i.GetColumnNames():
+            df_i = u.compute_tbin(df_i)
+        t_bin.append(df_i.Mean("t_bin").GetValue())
+    t_bin = np.mean(np.array(t_bin))
+    min_toa, max_toa, bin_number = u.get_ToA_histograms_limits(t_bin)
+
+    # Loop over df to create histograms
+    for df_i in df_dict.values():
+        h = df_i.Histo1D(
+            ("ToA", f"", bin_number, min_toa, max_toa), "ToA"
+            ).GetValue()
+        h.SetDirectory(0)
+        # Normalize histogram
+        h.Scale(1/h.Integral())
+        histograms.append(h)
+    # Substract and draw histograms
+    draw_hist.append(histograms[0].Clone())
+    # Subtract normalized histograms
+    draw_hist[-1].Add(histograms[1], -1)  
+    draw_hist[-1].SetDirectory(0)
+    draw_hist[-1].SetTitle(f"Substraction")
+    draw_hist[-1].Draw()
+    draw_hist[-1].GetXaxis().SetTitle("ToA/ns")
+    draw_hist[-1].GetYaxis().SetTitle("Counts")
+    
+    c.Draw()
     input("Press enter to continue...")
