@@ -43,9 +43,10 @@ def main(inputfile):
         df_dict[name+f"__{i_filter}"] = df_i
 
     # # Plot cal to make sure filter working properly
+    # histograms = []
     # for df_i in df_dict.values():
     #     pf.plot_cal(df_i)
-
+    pf.draw_Cal_together_different_canvas(df_dict)
     pf.draw_ToA_stacked(df_dict)
     pf.draw_ToA_normalised(df_dict, y_limit=5e-3)
     pf.draw_ToA_substraction(df_dict)

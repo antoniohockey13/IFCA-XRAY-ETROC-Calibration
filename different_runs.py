@@ -39,7 +39,8 @@ def main(inputfiles):
 
         # Save the dataframe
         df_dict[name] = df
-    
+
+    pf.draw_Cal_together_different_canvas(df_dict)
     pf.draw_ToA_stacked(df_dict)
     pf.draw_ToA_normalised(df_dict, y_limit=5e-3)
     pf.draw_ToA_substraction(df_dict)

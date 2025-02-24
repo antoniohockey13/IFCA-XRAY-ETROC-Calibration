@@ -48,6 +48,7 @@ def plot_cal(df, color = ROOT.kBlack):
     
     Args:
         df (ROOT.RDataFrame): RDataFrame with the hits
+        color (int): Color of the histogram. Default is ROOT.kBlack
         omit_plots (bool): If True, the plot will not be shown. Default is False.
     """
     canvas = ROOT.TCanvas()
@@ -282,7 +283,6 @@ def Cal_pixel(df):
 # Stacked plots                                      #
 # Functions to compare different runs/cuts           #
 ######################################################
-### TO DO Check function
 
 def draw_ToA_stacked(df_dict):
     """
@@ -441,3 +441,35 @@ def draw_ToA_substraction(df_dict):
     except ValueError as e:
         print(f"\033[91mError: {e}\033[0m")
         return
+    
+
+def draw_Cal_together_different_canvas(df_dict):
+    """
+    """
+    c = ROOT.TCanvas()
+    if len(df_dict) == 2:
+        c.Divide(2,1)
+    else:
+        c.Divide(int(np.ceil(len(df_dict)/2)), 2)
+    hist = []
+    for i, (name, df) in enumerate(df_dict.items()):
+        c.cd(i+1)
+        ROOT.gPad.SetLogy()
+        hist.append(df.Histo1D(
+            ("cal", f"", 1024, -0.5, 1023.5), "cal"
+        ).GetValue())
+        hist[-1].GetXaxis().SetTitle("Cal")
+        hist[-1].GetYaxis().SetTitle(f"Counts")
+        hist[-1].SetLineColor(colors[i])
+        hist[-1].SetDirectory(0)
+        hist[-1].SetTitle(f"{name}")
+        hist[-1].Draw()
+
+        # Text in the plot
+        text = ROOT.TLatex()
+        text.SetNDC()
+        text.SetTextSize(0.04)
+        text.DrawLatex(0.6, 0.7, f"Max cal = {u.get_max_cal(df)}")
+    c.Update()
+    c.Draw()
+    input("Press enter to continue...")
