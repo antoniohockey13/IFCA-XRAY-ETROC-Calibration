@@ -30,7 +30,7 @@ def main(inputfile):
     
     # Filter in different max_cal
     max_cal = u.get_max_cal(df)
-    filter_cal = [-1, 0, 1]
+    filter_cal = [0, 1]
     print(f"Cal filter to: {filter_cal}")
     df_dict = {}
     for i_filter in filter_cal:
@@ -48,7 +48,7 @@ def main(inputfile):
     #     pf.plot_cal(df_i)
     pf.draw_Cal_together_different_canvas(df_dict)
     pf.draw_ToA_stacked(df_dict)
-    pf.draw_ToA_normalised(df_dict, y_limit=5e-3)
+    pf.draw_ToA_normalised(df_dict, y_limit=0.005)
     pf.draw_ToA_substraction(df_dict)
 
 

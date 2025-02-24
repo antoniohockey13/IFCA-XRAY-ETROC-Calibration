@@ -30,7 +30,7 @@ def hit_map(df):
     """
     c = ROOT.TCanvas()
     c.SetRightMargin(0.2) 
-    hit_map = df.Histo2D(("hit_map", "Hit map", 16, 0., 16., 16, 0., 16.), "col", "row")
+    hit_map = df.Histo2D(("hit_map", "Hit map", 17, -0.5, 16.5, 17, -0.5, 16.5), "col", "row")
     hit_map.GetXaxis().SetTitle("Column")
     hit_map.GetYaxis().SetTitle("Row")
     hit_map.GetZaxis().SetTitle("Hits")

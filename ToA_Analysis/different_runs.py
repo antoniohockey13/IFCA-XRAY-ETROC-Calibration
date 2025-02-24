@@ -22,8 +22,9 @@ def main(inputfiles):
         df_dict[name] = ROOT.RDataFrame("Hits", inputfile)
 
     max_cal_dict = {}
-    filter_region = "Analogical_LV == 0"
-    # filter_region = "col == 5 && row == 6"
+    bin_selected = 0
+    # filter_region = "Analogical_LV == 0"
+    filter_region = "col == 5 && row == 6"
     print(filter_region)
     for name, df in df_dict.items():
         # Define the Analogical_LV column as the left/right side of the ETROC
@@ -33,8 +34,8 @@ def main(inputfiles):
         # # Filter in cal
         # Remove cal = 0 to compute t_bin (T3/cal = NaN)
         df = df.Filter("cal>0")
-        # max_cal_dict[name] = u.get_max_cal(df)
-        # df = df.Filter(f"abs(cal-{max_cal_dict[name]})<0.5")
+        max_cal_dict[name] = u.get_max_cal(df)
+        df = df.Filter(f"abs(cal-({max_cal_dict[name]}+{bin_selected})<0.5")
         # Compute needed variables
         df = u.compute_tbin(df)
         df = u.compute_ToA(df)
@@ -42,9 +43,14 @@ def main(inputfiles):
         df_dict[name] = df
 
     pf.draw_Cal_together_different_canvas(df_dict)
+    # for name, df in df_dict.items():
+    #     print(name)
+    #     pf.hit_map(df)
     pf.draw_ToA_stacked(df_dict)
     pf.draw_ToA_normalised(df_dict, y_limit=5e-3)
     pf.draw_ToA_substraction(df_dict)
+
+
 if __name__ == "__main__":
     try:
         main()
