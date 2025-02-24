@@ -22,21 +22,22 @@ def main(inputfiles):
         df_dict[name] = ROOT.RDataFrame("Hits", inputfile)
 
     max_cal_dict = {}
-    # filter_region = "Analogical_LV == 0"
-    filter_region = "col == 5 && row == 6"
+    filter_region = "Analogical_LV == 0"
+    # filter_region = "col == 5 && row == 6"
     print(filter_region)
     for name, df in df_dict.items():
         # Define the Analogical_LV column as the left/right side of the ETROC
         df = df.Define("Analogical_LV", "floor(col/8)")
         # Filter in Analogical LV
         df = df.Filter(filter_region)
-        # Filter in cal
-        max_cal_dict[name] = u.get_max_cal(df)
-        df = df.Filter(f"abs(cal-{max_cal_dict[name]})<0.5")
+        # # Filter in cal
+        # Remove cal = 0 to compute t_bin (T3/cal = NaN)
+        df = df.Filter("cal>0")
+        # max_cal_dict[name] = u.get_max_cal(df)
+        # df = df.Filter(f"abs(cal-{max_cal_dict[name]})<0.5")
         # Compute needed variables
         df = u.compute_tbin(df)
         df = u.compute_ToA(df)
-
         # Save the dataframe
         df_dict[name] = df
 
