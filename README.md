@@ -1,8 +1,9 @@
 # ETROC Calibration
 
-Scripts for the ETROC Calibration using the X-Ray setup at IFCA. 
+Scripts for the ETROC Calibration using the X-Ray setup at IFCA. Analysis of the ToA spectrum, Cal values and ToT is done.
 
-## Code structure
+## Measurement procedure
+- `test_xray.py` is used to launch the measurement in the setup.
 The setup produces `.nem` files with the hits information stored as:
 ```
 EH version event_number hits_count num_words
@@ -10,13 +11,21 @@ H channel L1Counter Type BCID
 D channel EA Row Col Toa Tot Cal
 T channel status hits CRC
 ```
+- `translate_data_to_root.py`: converts this information into a ROOT file for storing and analysing purposes.
 
-- `translate_data_to_root.py`: converts this information into a ROOT file for storaging and analysing purposes. 
-- `filter_by_cal.py`: Filter the data with the measured `Cal` values. It is expected to have a Delta dirac like distribution. This is not observed, something should be going with the ETROC. Also, it converts the ToA_Code and ToT_Code into ToA and ToT in ns. It creates a new ROOT file with this information called `Filtered_*.root`
-- `plot_hit_map_tot_toa.py`: File to plot hit map, ToT and ToA measured. 
--`Find_peaks.py`: Given a ROOT file with TOT data plots and finds the peaks using TSpectrum
--`plot_peak_calibration.py`: File to plot and fit ToT-Energy calibrations, values are hardcoded in the file
--`plot_ToAs.py`: Given files of different Cal values plots the ToA of those files together in a stack way and one on-top of each other
--`plot_ToA_per_pixel.py: Plots the ToA for each pixel (prepared for the wirebounded ETROCs) for different voltages applied in the X-Ray machine.
-- `plot_different_runs.py`: Plots Cal values for different runs together in the same canvas
-- `test_xray.py`file used to launch the measurements in the X-Ray machine
+The `I-V_curve.py` is used to plot the I-V curve of the used sensor, it is the first step to know the high voltage needed to fully deplete the sensor and work with it.
+### ToA Analysis
+The ToA (Time of Arrival) is analysed. For that different scripts are used.
+- `single_run.py`: Plots the result of a single run
+- `single_run_different_cuts.py`: Data of a single run but different cuts are applied to compare them
+- `different_runs.py`: Data obtained in different runs is compared
+
+These files use `utils.py` and `plot_functions.py` to show the results. In `utils.py` the ToA, ToT, histogram limits... are computed. The `plot_functions.py` has all the plots used defined there, the cuts are not done here.
+
+To work with these scripts the cuts are set and done in the `single_run.py`, `single_run_different_cuts.py` and `different_runs.py. Then, the other scripts are used to handle the operations and plots. 
+
+### ToT Analysis
+__TO DO__
+- `find_peaks.py`: Given a ROOT file with TOT data plots and finds the peaks using TSpectrum
+-  `plot_peak_calibration.py`: File to plot and fit ToT-Energy calibrations, values are hardcoded in the file
+
