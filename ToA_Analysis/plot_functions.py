@@ -18,12 +18,12 @@ colors = [
 # Not to compare plots                               #
 ######################################################
 
-def hit_map(df):
+def hit_map(df, title=""):
     """
     Plot the hit map of the ETROC. It is a matrix 16x16
     Args:
         df (ROOT.RDataFrame): RDataFrame with the hits
-        omit_plots (bool): If True, the plot will not be shown. Default is False.
+        title (str): Title of the plot. Default is ""
     Returns:
         hit_map (ROOT.TH2F): Hit map histogram
         max_pixel (int): Pixel with the highest number of entries
@@ -35,6 +35,7 @@ def hit_map(df):
     hit_map.GetYaxis().SetTitle("Row")
     hit_map.GetZaxis().SetTitle("Hits")
     hit_map.Draw("colz")
+    hit_map.SetTitle(title)
     c.Update()
     c.Draw()
     # Keep the canvas open until user input
@@ -42,7 +43,7 @@ def hit_map(df):
     return hit_map
 
 
-def plot_cal(df, color = ROOT.kBlack):
+def plot_cal(df, color = ROOT.kBlack, title=""):
     """
     Plot the Cal of the ETROC
     
@@ -50,6 +51,7 @@ def plot_cal(df, color = ROOT.kBlack):
         df (ROOT.RDataFrame): RDataFrame with the hits
         color (int): Color of the histogram. Default is ROOT.kBlack
         omit_plots (bool): If True, the plot will not be shown. Default is False.
+        title (str): Title of the plot. Default is ""
     """
     canvas = ROOT.TCanvas()
     hist = df.Histo1D(
@@ -58,6 +60,7 @@ def plot_cal(df, color = ROOT.kBlack):
     hist.GetXaxis().SetTitle("Cal")
     hist.GetYaxis().SetTitle(f"Counts")
     hist.SetLineColor(color)
+    hist.SetTitle(title)
     hist.SetTitle("")
     hist.Draw()
     # Add text with the max cal
@@ -72,12 +75,13 @@ def plot_cal(df, color = ROOT.kBlack):
     input("Press Enter to continue...")
     return hist
 
-def ToT(df):
+def ToT(df, title=""):
     """
     Plot the ToT of the ETROC in ns
     
     Args:
         df (ROOT.RDataFrame): RDataFrame with the hits
+        title (str): Title of the plot. Default is ""
     """
     if "ToT" not in df.GetColumnNames():
         df = u.compute_ToT(df)
@@ -92,7 +96,7 @@ def ToT(df):
     )
     hist.GetXaxis().SetTitle("ToT/ns")
     hist.GetYaxis().SetTitle(f"Counts")
-    hist.SetTitle("")
+    hist.SetTitle(title)
     hist.Draw("")
 
     canvas.Update()
@@ -100,7 +104,7 @@ def ToT(df):
     input("Press Enter to continue...")  
     return hist
 
-def ToT_CODE(df):
+def ToT_CODE(df, title=""):
     """
     Plot the ToT_CODE of the ETROC
     
@@ -115,19 +119,20 @@ def ToT_CODE(df):
         )
     hist.GetXaxis().SetTitle("ToT_CODE")
     hist.GetYaxis().SetTitle(f"Counts")
-    hist.SetTitle(f"")
+    hist.SetTitle(title)
     hist.Draw()
 
     canvas.Update()
     # Keep the canvas open until user input
     input("Press Enter to continue...")
 
-def ToA(df):
+def ToA(df, title=""):
     """
     Plot the ToA of the ETROC in ns
     
     Args:
         df (ROOT.RDataFrame): RDataFrame with the hits
+        title (str): Title of the plot. Default is ""
     """
     if "ToA" not in df.GetColumnNames():
         df = u.compute_ToA(df)
@@ -142,7 +147,7 @@ def ToA(df):
     )
     hist.GetXaxis().SetTitle("ToA/ns")
     hist.GetYaxis().SetTitle(f"Counts")
-    hist.SetTitle(f"")
+    hist.SetTitle(title)
     hist.Draw()
 
     canvas.Update()
@@ -150,12 +155,13 @@ def ToA(df):
     input("Press Enter to continue...")
     return hist
 
-def ToA_CODE(df):
+def ToA_CODE(df, title=""):
     """
     Plot the ToA_CODE of the ETROC
     
     Args:
         df (ROOT.RDataFrame): RDataFrame with the hits
+        title (str): Title of the plot. Default is ""
     """
     canvas = ROOT.TCanvas()
 
@@ -171,7 +177,7 @@ def ToA_CODE(df):
     )
     hist.GetXaxis().SetTitle("ToA_CODE")
     hist.GetYaxis().SetTitle(f"Counts")
-    hist.SetTitle("")
+    hist.SetTitle(title)
     hist.Draw()
 
     canvas.Update()

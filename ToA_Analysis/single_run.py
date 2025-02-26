@@ -26,6 +26,7 @@ def main(inputfile):
         raise ValueError(f"Input file must have .root extension and it has .{inputfile.split('.')[-1]}")
 
     df = ROOT.RDataFrame("Hits", inputfile)
+    title = inputfile.split('/')[-1].split('.')[0]
     # Plot the hit map
     pf.hit_map(df)
     # Define the Analogical_LV column as the left/right side of the ETROC
@@ -40,15 +41,17 @@ def main(inputfile):
     print(f"Max cal : {max_cal}")
     # Filter to the max cal
     filter = f"abs(cal-{max_cal})<0.5"
+    # filter = f"cal == {max_cal}+1 || cal == {max_cal}-1"
     # filter = f"abs(cal-{max_cal})> 2"
     print(filter)
     df = df.Filter(filter)
+    pf.plot_cal(df)
     # # Compute ToT
     # df = u.compute_ToT(df)
     # # Plot the ToT
     # pf.ToT(df)
     # Plot the ToA
-    toa_histograms = pf.ToA(df)
+    toa_histograms = pf.ToA(df, title)
     
 if __name__ == "__main__":
     try:
