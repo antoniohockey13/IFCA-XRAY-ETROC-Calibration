@@ -30,12 +30,16 @@ def main(inputfile):
     
     # Filter in different max_cal
     max_cal = u.get_max_cal(df)
-    filter_cal = [0, 1]
+    filter_cal = [0, "-1 and +1"]
     print(f"Cal filter to: {filter_cal}")
     df_dict = {}
     for i_filter in filter_cal:
-        print(f"abs(cal-({max_cal}+{i_filter}))<0.5")
-        df_i = df.Filter(f"abs(cal-({max_cal}+{i_filter}))<0.5")
+        if i_filter == "-1 and +1":
+            filter = f"cal == {max_cal}+1 || cal == {max_cal}-1"
+        else:
+            filter = f"abs(cal-({max_cal}+{i_filter}))<0.5"
+        print(filter)
+        df_i = df.Filter(filter)
         # Compute needed variables
         df_i = u.compute_tbin(df_i)
         df_i = u.compute_ToA(df_i)
@@ -48,7 +52,7 @@ def main(inputfile):
     #     pf.plot_cal(df_i)
     pf.draw_Cal_together_different_canvas(df_dict)
     pf.draw_ToA_stacked(df_dict)
-    pf.draw_ToA_normalised(df_dict, y_limit=0.005)
+    pf.draw_ToA_normalised(df_dict, y_limit=0.006)
     pf.draw_ToA_substraction(df_dict)
 
 

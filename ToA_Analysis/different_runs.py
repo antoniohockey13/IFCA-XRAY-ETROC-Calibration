@@ -23,8 +23,9 @@ def main(inputfiles):
 
     max_cal_dict = {}
     bin_selected = 0
-    # filter_region = "Analogical_LV == 0"
-    filter_region = "col == 5 && row == 6"
+    filter_region = "Analogical_LV == 0"
+    # filter_region = "col == 5 && row == 6"
+    # filter_region = "col == 12 && row == 6"
     print(filter_region)
     for name, df in df_dict.items():
         # Define the Analogical_LV column as the left/right side of the ETROC
@@ -34,8 +35,8 @@ def main(inputfiles):
         # # Filter in cal
         # Remove cal = 0 to compute t_bin (T3/cal = NaN)
         df = df.Filter("cal>0")
-        max_cal_dict[name] = u.get_max_cal(df)
-        df = df.Filter(f"abs(cal-({max_cal_dict[name]}+{bin_selected})<0.5")
+        # max_cal_dict[name] = u.get_max_cal(df)
+        # df = df.Filter(f"abs(cal-({max_cal_dict[name]}+{bin_selected}))<0.5")
         # Compute needed variables
         df = u.compute_tbin(df)
         df = u.compute_ToA(df)
