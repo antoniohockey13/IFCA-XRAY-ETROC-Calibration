@@ -22,15 +22,19 @@ def main(inputfile):
     df = ROOT.RDataFrame("Hits", inputfile)
     # Filter region
     filter_region = "col == 5 && row == 6"
+    # filter_region = "col == 12 && row == 6"
+    # filter_region = "Analogical_LV == 1"
     print(filter_region)
     # Define the Analogical_LV column as the left/right side of the ETROC
-    df.Define("Analogical_LV", "floor(col/8)")
+    df = df.Define("Analogical_LV", "floor(col/8)")
+    # pf.hit_map(df)
     # Filter in Analogical LV
-    df.Filter(filter_region)
+    df = df.Filter(filter_region)
+    # pf.hit_map(df)
     
     # Filter in different max_cal
     max_cal = u.get_max_cal(df)
-    filter_cal = [0, "-1 and +1"]
+    filter_cal = [0, -1]
     print(f"Cal filter to: {filter_cal}")
     df_dict = {}
     for i_filter in filter_cal:
@@ -52,7 +56,7 @@ def main(inputfile):
     #     pf.plot_cal(df_i)
     pf.draw_Cal_together_different_canvas(df_dict)
     pf.draw_ToA_stacked(df_dict)
-    pf.draw_ToA_normalised(df_dict, y_limit=0.006)
+    pf.draw_ToA_normalised(df_dict, y_limit=0.01)
     pf.draw_ToA_substraction(df_dict)
 
 
