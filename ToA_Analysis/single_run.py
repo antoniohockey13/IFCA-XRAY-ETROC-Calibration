@@ -32,7 +32,7 @@ def main(inputfile):
     # Define the Analogical_LV column as the left/right side of the ETROC
     df = df.Define("Analogical_LV", "floor(col/8)")
     # filter = "Analogical_LV == 0"
-    filter = "col == 5 && row == 6 && cal > 0"
+    filter = "col == 12 && row == 6 && cal > 0"
     print(filter)
     df = df.Filter(filter)
     # Plot the Cal
@@ -40,7 +40,8 @@ def main(inputfile):
     max_cal = u.get_max_cal(df)
     print(f"Max cal : {max_cal}")
     # Filter to the max cal
-    filter = f"abs(cal-{max_cal})<0.5"
+    select_bin = 0
+    filter = f"abs(cal-({max_cal}-{select_bin}))<0.5"
     # filter = f"cal == {max_cal}+1 || cal == {max_cal}-1"
     # filter = f"abs(cal-{max_cal})> 2"
     print(filter)
