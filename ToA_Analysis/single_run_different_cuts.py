@@ -21,8 +21,8 @@ def main(inputfile):
     # Create dataframe
     df = ROOT.RDataFrame("Hits", inputfile)
     # Filter region
-    filter_region = "col == 5 && row == 6"
-    # filter_region = "col == 12 && row == 6"
+    # filter_region = "col == 5 && row == 6"
+    filter_region = "col == 12 && row == 6"
     # filter_region = "Analogical_LV == 1"
     print(filter_region)
     # Define the Analogical_LV column as the left/right side of the ETROC
@@ -56,7 +56,7 @@ def main(inputfile):
     #     pf.plot_cal(df_i)
     pf.draw_Cal_together_different_canvas(df_dict)
     pf.draw_ToA_stacked(df_dict)
-    pf.draw_ToA_normalised(df_dict, y_limit=0.01)
+    pf.draw_ToA_normalised(df_dict, y_limit=0.008)
     pf.draw_ToA_substraction(df_dict)
 
 

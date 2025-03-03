@@ -69,6 +69,7 @@ def plot_cal(df, color = ROOT.kBlack, title=""):
     text.SetNDC()
     text.SetTextSize(0.03)
     text.DrawLatex(0.7, 0.8, f"Max Cal: {max_cal}")
+    canvas.SetLogy()
     canvas.Update()
     
     # Keep the canvas open until user input
@@ -126,13 +127,14 @@ def ToT_CODE(df, title=""):
     # Keep the canvas open until user input
     input("Press Enter to continue...")
 
-def ToA(df, title=""):
+def ToA(df, title="", omit_plots=False):
     """
     Plot the ToA of the ETROC in ns
     
     Args:
         df (ROOT.RDataFrame): RDataFrame with the hits
         title (str): Title of the plot. Default is ""
+        omit_plots (bool): If True, the plot will not be shown. Default is False
     """
     if "ToA" not in df.GetColumnNames():
         df = u.compute_ToA(df)
@@ -150,10 +152,85 @@ def ToA(df, title=""):
     hist.SetTitle(title)
     hist.Draw()
 
-    canvas.Update()
     # Keep the canvas open until user input
-    input("Press Enter to continue...")
+    if not omit_plots:
+        canvas.Update()
+        input("Press Enter to continue...")
     return hist
+
+
+def fit_ToA_sin(df=None, toa_histogram=None, title=None):
+    """
+    Fit the ToA to a sinusoidal function
+    Args:
+        df (ROOT.RDataFrame): RDataFrame with the hits. Default is None.
+        toa_histogram (ROOT.TH1F): ToA histogram. Default is None.
+        title (str): Title of the plot. Default is None.
+    Returns:
+        x_max (float): First maximum of the sinusoidal fit
+        x_min (float): First minimum of the sinusoidal fit
+        omega (float): Angular frequency of the sinusoidal fit
+        omega_error (float): Error of the angular frequency of the sinusoidal fit
+    """
+    try:
+        if toa_histogram is None and df is None:
+            raise ValueError("Either df or toa_histogram must be provided")
+        elif toa_histogram is None:
+            toa_histogram = ToA(df, omit_plots=True)
+        
+        
+        # Fit ToA to sinusoidal
+        c = ROOT.TCanvas()
+        toa_histogram.Draw()
+        toa_histogram.GetXaxis().SetTitle("ToA/ns")
+        toa_histogram.SetTitle(title)
+        fit = ROOT.TF1("fit", "[0]*sin([1]*x+[2])+[3]", 0, 10)
+        fit.SetParNames("Amplitude", "Angular Frequency", "Phase", "Offset")
+        # Set range to amplitude so it is always positive
+        fit.SetParameter("Amplitude", 245)
+        fit.SetParLimits(0, 0, 1e6)
+        fit.SetParameter("Angular Frequency", 2.8)
+        fit.SetParLimits(1, 0, 1e6)
+        fit.SetParameter("Phase", 0)
+        fit.SetParLimits(2, -2*np.pi, 2*np.pi)
+        fit.SetParameter("Offset", 1000)
+        toa_histogram.Fit(fit, "R")
+        fit.Draw("same")
+        # Compute first minimum position
+        n = [-5, -3, -1, 1, 3, 5]
+        x_min = []
+        for i in n:
+            x_min.append(((2*i+1)*np.pi/2-fit.GetParameter("Phase"))/fit.GetParameter("Angular Frequency"))
+        x_min.sort()
+        x_min = list(filter(lambda x: x > 0.6, x_min))[0]
+        # Add text with period of the fit
+        text = ROOT.TLatex()
+        text.SetNDC()
+        text.SetTextSize(0.03)
+        text.DrawLatex(0.7, 0.8, f"Period: {2*np.pi/fit.GetParameter("Angular Frequency"):.3f} ns")
+        # Add text with the first minimum
+        text.DrawLatex(0.7, 0.75, f"First minimum: {x_min:.3f} ns")
+        c.Update()
+        c.Draw()
+        # Print error of angular frequency
+        print(f"Period: {2*np.pi/fit.GetParameter('Angular Frequency')} +- {2*np.pi*np.log(fit.GetParameter('Angular Frequency'))*fit.GetParError(1)} ns")
+        print(f"First minimum: {x_min:.3f} ns")
+        # Compute firs maximum
+        n = [-4, -2, 0, 2, 4]
+        x_max = []
+        for i in n:
+            x_max.append(((2*i+1)*np.pi/2-fit.GetParameter("Phase"))/fit.GetParameter("Angular Frequency"))
+        x_max.sort()
+        x_max = list(filter(lambda x: x > x_min, x_max))[0]
+        print(f"First maximum: {x_max:.3f} ns")
+        input("Press Enter to continue...")
+        return x_max, x_min, fit.GetParameter("Angular Frequency"), fit.GetParError(1)
+
+    
+
+    except ValueError as e:
+        print(f"\033[91mError: {e}\033[0m")
+        return
 
 def ToA_CODE(df, title=""):
     """
