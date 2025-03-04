@@ -187,15 +187,25 @@ def fit_ToA_sin(df=None, toa_histogram=None, title=None):
         fit = ROOT.TF1("fit", "[0]*sin([1]*x+[2])+[3]", 0, 10)
         fit.SetParNames("Amplitude", "Angular Frequency", "Phase", "Offset")
         # Set range to amplitude so it is always positive
-        fit.SetParameter("Amplitude", 245)
+        fit.SetParameter("Amplitude", 100)
         fit.SetParLimits(0, 0, 1e6)
-        fit.SetParameter("Angular Frequency", 2.8)
+        fit.SetParameter("Angular Frequency", 2.5)
         fit.SetParLimits(1, 0, 1e6)
         fit.SetParameter("Phase", 0)
         fit.SetParLimits(2, -2*np.pi, 2*np.pi)
-        fit.SetParameter("Offset", 1000)
+        fit.SetParameter("Offset", 300)
         toa_histogram.Fit(fit, "R")
         fit.Draw("same")
+        
+        # Add text with period of the fit
+        text = ROOT.TLatex()
+        text.SetNDC()
+        text.SetTextSize(0.03)
+        text.DrawLatex(0.7, 0.8, f"Period: {2*np.pi/fit.GetParameter("Angular Frequency"):.3f} ns")
+        c.Update()
+        c.Draw()
+        # Print error of angular frequency
+        print(f"Period: {2*np.pi/fit.GetParameter('Angular Frequency')} +- {2*np.pi*np.log(fit.GetParameter('Angular Frequency'))*fit.GetParError(1)} ns")
         # Compute first minimum position
         n = [-5, -3, -1, 1, 3, 5]
         x_min = []
@@ -203,17 +213,6 @@ def fit_ToA_sin(df=None, toa_histogram=None, title=None):
             x_min.append(((2*i+1)*np.pi/2-fit.GetParameter("Phase"))/fit.GetParameter("Angular Frequency"))
         x_min.sort()
         x_min = list(filter(lambda x: x > 0.6, x_min))[0]
-        # Add text with period of the fit
-        text = ROOT.TLatex()
-        text.SetNDC()
-        text.SetTextSize(0.03)
-        text.DrawLatex(0.7, 0.8, f"Period: {2*np.pi/fit.GetParameter("Angular Frequency"):.3f} ns")
-        # Add text with the first minimum
-        text.DrawLatex(0.7, 0.75, f"First minimum: {x_min:.3f} ns")
-        c.Update()
-        c.Draw()
-        # Print error of angular frequency
-        print(f"Period: {2*np.pi/fit.GetParameter('Angular Frequency')} +- {2*np.pi*np.log(fit.GetParameter('Angular Frequency'))*fit.GetParError(1)} ns")
         print(f"First minimum: {x_min:.3f} ns")
         # Compute firs maximum
         n = [-4, -2, 0, 2, 4]
