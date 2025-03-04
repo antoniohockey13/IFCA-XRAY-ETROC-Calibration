@@ -39,14 +39,18 @@ def main(inputfiles):
         print(f"Max cal : {max_cal}")
         # Filter to the max cal
         select_bin = 0
-        filter = f"abs(cal-({max_cal}-{select_bin}))<0.5"
+        filter = f"abs(cal-({max_cal}+{select_bin}))<0.5"
         print(filter)
         df = df.Filter(filter)
+        title = title + f"__{select_bin}"
+        # pf.plot_cal(df)
         x_min, x_max, om, om_error =pf.fit_ToA_sin(df=df, title=title)
         first_minimum.append(x_min)
         first_maximum.append(x_max)
         omega.append(om)
         omega_error.append(om_error)
+
+        # pf.fast_fourier_transform_ToA(df=df, title=title)
     print(f"First minimum mean = {np.array(first_minimum).mean()} +/- {np.array(first_minimum).std()}")
     print(f"First maximum mean = {np.array(first_maximum).mean()} +/- {np.array(first_maximum).std()}")
     print(f"Omega mean = {np.array(omega).mean()} +/- {np.array(omega).std()}")

@@ -159,7 +159,7 @@ def ToA(df, title="", omit_plots=False):
     return hist
 
 
-def fit_ToA_sin(df=None, toa_histogram=None, title=None):
+def fit_ToA_sin(df=None, toa_histogram=None, title=""):
     """
     Fit the ToA to a sinusoidal function
     Args:
@@ -231,6 +231,58 @@ def fit_ToA_sin(df=None, toa_histogram=None, title=None):
         print(f"\033[91mError: {e}\033[0m")
         return
 
+def fast_fourier_transform_ToA(df=None, toa_histogram=None, title=None):
+    """
+    Compute the Fast Fourier Transform of the ToA histogram
+    Args:
+        df (ROOT.RDataFrame): RDataFrame with the hits. Default is None.
+        toa_histogram (ROOT.TH1F): ToA histogram. Default is None.
+        title (str): Title of the plot. Default is None.
+    """
+    try:
+        if toa_histogram is None and df is None:
+            raise ValueError("Either df or toa_histogram must be provided")
+        elif toa_histogram is None:
+            toa_histogram = ToA(df, omit_plots=True)
+        # Get the TH1 object from the RDataFrame
+        toa_histogram = toa_histogram.GetValue()
+        # Compute the Fast Fourier Transform
+        c = ROOT.TCanvas()
+        n_bins = toa_histogram.GetNbinsX()
+        n_bins_array = np.array([n_bins], dtype=np.int32)
+        # Compute the Fast Fourier Transform
+        fft = ROOT.TVirtualFFT.FFT(1, n_bins_array, "R2C M")
+        # Fill the FFT with the histogram data
+        for i in range(n_bins):
+            fft.SetPoint(i, toa_histogram.GetBinContent(i+1))
+        fft.Transform()
+
+        # Get real and imaginary parts of the FFT
+        re, im = np.zeros(n_bins), np.zeros(n_bins)
+        fft.GetPointsComplex(re, im)  
+
+        # Compute magnitude spectrum
+        magnitude = np.sqrt(re**2 + im**2)
+
+        # Create a new histogram for the magnitude spectrum
+        h_fft = ROOT.TH1D("h_fft", "", n_bins//2, 0, n_bins//2)
+        for i in range(n_bins//2):
+            h_fft.SetBinContent(i+1, magnitude[i])
+
+        # Draw original histogram and FFT magnitude
+        h_fft.GetXaxis().SetTitle("Frequency")
+        h_fft.GetYaxis().SetTitle("Magnitude")
+        h_fft.SetTitle(title)
+        h_fft.Draw()
+        c.SetLogy()
+        c.Draw()
+        input("Press Enter to continue...")
+
+
+    except ValueError as e:
+        print(f"\033[91mError: {e}\033[0m")
+        return
+
 def ToA_CODE(df, title=""):
     """
     Plot the ToA_CODE of the ETROC
@@ -249,7 +301,7 @@ def ToA_CODE(df, title=""):
 
 	# Plot histogram
     hist = df.Histo1D(
-        ("toa_code", f"Analogical LV {i}", bin_number, min_toa, max_toa), "toa_code"
+        ("toa_code", f"", bin_number, min_toa, max_toa), "toa_code"
     )
     hist.GetXaxis().SetTitle("ToA_CODE")
     hist.GetYaxis().SetTitle(f"Counts")

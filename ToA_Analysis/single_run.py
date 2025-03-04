@@ -28,33 +28,34 @@ def main(inputfile):
     df = ROOT.RDataFrame("Hits", inputfile)
     title = inputfile.split('/')[-1].split('.')[0]
     # Plot the hit map
-    # pf.hit_map(df)
+    pf.hit_map(df)
     # Define the Analogical_LV column as the left/right side of the ETROC
     df = df.Define("Analogical_LV", "floor(col/8)")
     # filter = "Analogical_LV == 0"
     filter = "col == 5 && row == 6 && cal > 0"
     print(filter)
     df = df.Filter(filter)
-    # pf.hit_map(df)
+    pf.hit_map(df)
     # Plot the Cal
-    # pf.plot_cal(df)
+    pf.plot_cal(df)
     max_cal = u.get_max_cal(df)
     print(f"Max cal : {max_cal}")
     # Filter to the max cal
     select_bin = 0
-    filter = f"abs(cal-({max_cal}-{select_bin}))<0.5"
+    filter = f"abs(cal-({max_cal}+{select_bin}))<0.5"
     # filter = f"cal == {max_cal}+1 || cal == {max_cal}-1"
     # filter = f"abs(cal-{max_cal})< 0.5"
     # filter = "cal > 0"
     print(filter)
     df = df.Filter(filter)
-    # pf.plot_cal(df)
+    pf.plot_cal(df)
+    pf.ToA_CODE(df)
     # # Compute ToT
     # df = u.compute_ToT(df)
     # # Plot the ToT
     # pf.ToT(df)
     # Plot the ToA
-    toa_histograms = pf.ToA(df, title, omit_plots=True)
+    toa_histograms = pf.ToA(df, title=title, omit_plots=True)
     pf.fit_ToA_sin(toa_histogram = toa_histograms)
 
     
