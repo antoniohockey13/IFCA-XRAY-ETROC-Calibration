@@ -43,7 +43,7 @@ def hit_map(df, title=""):
     return hit_map
 
 
-def plot_cal(df, color = ROOT.kBlack, title=""):
+def plot_cal(df, color = ROOT.kBlack, title="", omit_plots=False):
     """
     Plot the Cal of the ETROC
     
@@ -52,6 +52,8 @@ def plot_cal(df, color = ROOT.kBlack, title=""):
         color (int): Color of the histogram. Default is ROOT.kBlack
         omit_plots (bool): If True, the plot will not be shown. Default is False.
         title (str): Title of the plot. Default is ""
+    Returns:
+        hist (ROOT.TH1F): Histogram with the cal values
     """
     canvas = ROOT.TCanvas()
     hist = df.Histo1D(
@@ -71,10 +73,11 @@ def plot_cal(df, color = ROOT.kBlack, title=""):
     text.DrawLatex(0.7, 0.8, f"Max Cal: {max_cal}")
     canvas.SetLogy()
     canvas.Update()
-    
-    # Keep the canvas open until user input
-    input("Press Enter to continue...")
-    return hist
+    if not omit_plots:
+        # Keep the canvas open until user input
+        input("Press Enter to continue...")
+        
+    return hist.GetValue()
 
 def ToT(df, title=""):
     """

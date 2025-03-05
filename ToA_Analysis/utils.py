@@ -1,5 +1,6 @@
 import ROOT
 import numpy as np
+import plot_functions as pf
 
 ns = 1
 # Constant value dependant only on the ETROC configuration 
@@ -21,45 +22,104 @@ def get_max_cal(df: ROOT.RDataFrame):
     max_cal = hist.GetMaximumBin()-1
     return max_cal
 
+def get_Cal_relation(df: ROOT.RDataFrame):
+    """
+    Get the relation between the number of hits in the cal = -1,0,1 bins
+    Args:
+        df: ROOT.RDataFrame
+    Returns:
+        rel01: float
+        rel0m1: float
+        rel01m1: float
+    """
 
-def compute_tbin(df):
+    max_cal = get_max_cal(df)
+    # Filter to the max cal
+    select_bin = 0
+    filter = f"abs(cal-({max_cal}+{select_bin}))<0.5"
+    hits_0 = df.Filter(filter).Count().GetValue()
+    select_bin = 1
+    filter = f"abs(cal-({max_cal}+{select_bin}))<0.5"
+    hits_1 = df.Filter(filter).Count().GetValue()
+    select_bin = -1
+    filter = f"abs(cal-({max_cal}+{select_bin}))<0.5"
+    hits_m1 = df.Filter(filter).Count().GetValue()
+
+    rel01 = hits_0/hits_1
+    rel0m1 = hits_0/hits_m1
+    rel01m1 = hits_0/(hits_1+hits_m1)
+    return rel01, rel0m1, rel01m1
+
+def get_mean_cal(df: ROOT.RDataFrame):
+    """
+    Get the mean cal value in the dataframe
+    Args:
+        df: ROOT.RDataFrame
+    Returns:
+        mean_cal: float
+        error_mean: float. Sigma of the gaussian distribution
+    """
+    max_cal = get_max_cal(df)
+    # Filter to the max cal +-2 bins
+    filter = f"abs(cal-{max_cal})<2.5"
+    df = df.Filter(filter)
+    # Plot cal histogram
+    hist = pf.plot_cal(df, omit_plots=True)
+
+    # Fit histogram to a gaussian in the range max cal -2, max cal +2
+    c = ROOT.TCanvas()
+    hist.GetXaxis().SetRangeUser(max_cal-2, max_cal+2)
+    fit = hist.Fit("gaus", "S", "", max_cal-2, max_cal+2)
+    mean_cal = fit.Parameter(1)
+    error_mean = fit.Parameter(2)
+    c.Draw()
+    input("Press Enter to continue...")
+
+    return mean_cal, error_mean
+    
+def compute_tbin(df, cal = None):
     """
     Compute the t_bin for each event as a new column in the dataframe
     Args:
         df: ROOT.RDataFrame
+        cal: float. Value of Cal used to compute the t_bin. If None, the cal of each event is used
     Returns:
         df: ROOT.RDataFrame
     """
-
-    df = df.Define("t_bin", f"{T3}/cal")
+    if cal is None:
+        df = df.Define("t_bin", f"{T3}/cal")
+    else:
+        df = df.Define("t_bin", f"{T3}/{cal}")
     return df
 
-def compute_ToA(df):
+def compute_ToA(df, cal=None):
     """
     Compute the ToA for each event as a new column in the dataframe
     Args:
         df: ROOT.RDataFrame
+        cal: float. Value of Cal used to compute the ToA. If None, the cal of each event is used
     Returns:
         df: ROOT.RDataFrame
     """
     # Check if the t_bin column is already in the dataframe
     if "t_bin" not in df.GetColumnNames():
-        df = compute_tbin(df)
+        df = compute_tbin(df, cal)
 
     df = df.Define("ToA", f"{T_WINDOW}-t_bin*toa_code")
     return df
 
-def compute_ToT(df):
+def compute_ToT(df, cal=None):
     """
     Compute the ToT for each event as a new column in the dataframe
     Args:
         df: ROOT.RDataFrame
+        cal: float. Value of Cal used to compute the ToT. If None, the cal of each event is used
     Returns:
         df: ROOT.RDataFrame
     """
     # Check if the ToA column is already in the dataframe
     if "t_bin" not in df.GetColumnNames():
-        df = compute_tbin(df)
+        df = compute_tbin(df, cal)
 
     df = df.Define("ToT", f"(2*tot_code - floor(tot_code/32))*t_bin")
     return df
