@@ -76,7 +76,7 @@ def plot_cal(df, color = ROOT.kBlack, title="", omit_plots=False):
     if not omit_plots:
         # Keep the canvas open until user input
         input("Press Enter to continue...")
-        
+
     return hist.GetValue()
 
 def ToT(df, title=""):
@@ -226,7 +226,11 @@ def fit_ToA_sin(df=None, toa_histogram=None, title=""):
         x_max = list(filter(lambda x: x > x_min, x_max))[0]
         print(f"First maximum: {x_max:.3f} ns")
         input("Press Enter to continue...")
-        return x_max, x_min, fit.GetParameter("Angular Frequency"), fit.GetParError(1)
+
+        if fit.GetParameter("Amplitude") > 1e4 or fit.GetParameter("Amplitude") < 1 or 2*np.pi/fit.GetParameter("Angular Frequency") > 5:
+            return x_max, x_min, None, None
+        else:
+            return x_max, x_min, fit.GetParameter("Angular Frequency"), fit.GetParError(1)
 
     
 
