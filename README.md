@@ -21,7 +21,8 @@ The ToA (Time of Arrival) is analysed. For that different scripts are used.
 - `different_runs.py`: Data obtained in different runs is compared
 - `toa_peaks_analysis.py`: Study the ToA and fits the peaks spectrum to a sin function. Also computes the first minimum and maximum as well as the period of the sin. Then, computes the mean.
 - `study_cal_during_run.py`: Studies the evolution of the Cal values during one run. The `event_number` is used to order the hits.
-These files use `utils.py` and `plot_functions.py` to show the results. In `utils.py` the ToA, ToT, histogram limits... are computed. The `plot_functions.py` has all the plots used defined there, the cuts are not done here.
+
+These files use `utils.py`, `plot_functions.py`  and `plot_funcions_wirebonded.py` to show the results. In `utils.py` the ToA, ToT, histogram limits... are computed. The `plot_functions.py` has all the plots used defined there, the cuts are not done here. `plot_functions_wirebonded.py` have the specific functions use to the wirebonded ETROC analysis, it has the position pf the pixels used hardcoded,
 
 To work with these scripts the cuts are set and done in the `single_run.py`, `single_run_different_cuts.py` and `different_runs.py. Then, the other scripts are used to handle the operations and plots. 
 
