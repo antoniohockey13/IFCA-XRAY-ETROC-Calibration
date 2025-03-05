@@ -2,9 +2,6 @@ import ROOT
 import utils as u
 import numpy as np
 
-# Map sensor positions
-SENSOR_POS = {"6": 1, "7": 3, "8": 4, "9": 2}
-
 colors = [
     ROOT.kRed+1, ROOT.kBlue+1,ROOT.kGreen+2, ROOT.kRed-7, ROOT.kBlue-7, ROOT.kGreen-5,
     ROOT.kMagenta+1, ROOT.kMagenta-5, ROOT.kOrange+2, ROOT.kOrange-3, ROOT.kCyan+1, ROOT.kCyan-6,
@@ -330,7 +327,7 @@ def t_bin(df):
     canvas = ROOT.TCanvas()
 
     hist = df.Histo1D(
-        ("t_bin", f"Analogical LV {i}", 1500, 0., 0.05), "t_bin"
+        ("t_bin", f"", 1500, 0., 0.05), "t_bin"
     )
     hist.GetXaxis().SetTitle("t_bin/ns")
     hist.GetYaxis().SetTitle(f"Counts")
@@ -341,84 +338,56 @@ def t_bin(df):
     # Keep the canvas open until user input
     input("Press Enter to continue...")
 
-######################################################
-# Functions prepared for the wirebounded ETROCs      #
-# Hardcoded values of the columns used               #
-######################################################
-
-def ToA_pixel(df):
+def event_number(df):
     """
-    Plot the ToA of the ETROC in for each column 6, 7, 8 and 9. 
-    This function is prepared for the wirebounded ETROCs.
+    Plot the event number of the ETROC
+    """
+    canvas = ROOT.TCanvas()
 
+    hist = df.Histo1D("event_number")
+    hist.GetXaxis().SetTitle("Event number")
+    hist.GetYaxis().SetTitle(f"Counts")
+    hist.SetTitle(f"")
+    hist.Draw()
+
+    canvas.Update()
+    # Keep the canvas open until user input
+    input("Press Enter to continue...")
+
+def cal_vs_event_number(df, title=""):
+    """
+    Plot the Cal vs the event number
+    This way the evolution of the Cal during the run can be studied
     Args:
         df (ROOT.RDataFrame): RDataFrame with the hits
-    
-    Returns:
-        histograms (list): List with the histograms for each pixel
+        title (str): Title of the plot. Default is ""
     """
+    # Remove statistics values
+    ROOT.gStyle.SetOptStat(00000)
     canvas = ROOT.TCanvas()
-    canvas.Divide(2, 2)
-    histograms = {}
-    for i in range(6, 10):
-        canvas.cd(SENSOR_POS[str(i)])
+    max = df.Max("event_number").GetValue()
+    size = 500
+    bin_number = int(max/size)
+    hist = df.Histo2D(
+        ("cal-eventnumber", f"", bin_number, 0, max, 1024, -0.5, 1023.5), "event_number", "cal"
+    ).GetValue().ProfileX()
+    hist.GetXaxis().SetTitle("Event number")
+    hist.GetYaxis().SetTitle("Cal")
+    hist.SetTitle(title)
+    # Fit to 1 degree pol
+    fit = hist.Fit("pol1", "S")
+    hist.Draw()
 
-        # Filter dataframe to select col and obtain t_bin
-        df_i = df.Filter(f"col == {i}")
-        # Compute histogram limits
-        min_toa, max_toa, bin_number = u.get_ToA_histograms_limits(df_i.Mean("t_bin").GetValue())
-        print(f"Row {i} t_bin: {df_i.Mean('t_bin').GetValue()}")
-        # Create histogram
-        hist = df_i.Histo1D(
-            ("ToA", f"Row {i}", bin_number, min_toa, max_toa), "ToA"
-        )
-        # Configure histogram
-        hist.GetXaxis().SetTitle("ToA/ns")
-        hist.GetYaxis().SetTitle(f"Counts")
-        hist.SetTitle(f"Column = {i}")
-        hist.Draw()
+    # Add text with the fit result
+    text = ROOT.TLatex()
+    text.SetNDC()
+    text.SetTextSize(0.03)
+    text.DrawLatex(0.2, 0.2, f" y = ({fit.Parameter(1):.2e}+-{fit.ParError(1):.2e})x + {fit.Parameter(0):.2f}+-{fit.ParError(0):.2f}")
 
-        histograms[i] = hist
 
     canvas.Update()
     # Keep the canvas open until user input
     input("Press Enter to continue...")
-    return histograms
-
-
-def Cal_pixel(df):
-    canvas = ROOT.TCanvas()
-    canvas.Divide(2, 2)
-    histograms = {}
-    for i in range(6, 10):
-        canvas.cd(SENSOR_POS[str(i)])
-
-        # Filter dataframe to select col
-        df_i = df.Filter(f"col == {i}")
-        bin_size = 1
-        min_cal = -bin_size/2
-        max_cal = 1024+bin_size/2
-        bin_number = int((max_cal-min_cal)/bin_size)        
-        print(f"Col: {i} Number of bins: {bin_number}")
-
-        # Create histogram
-        hist = df_i.Histo1D(
-            ("cal", f"Row {i}", bin_number, min_cal, max_cal), "cal"
-        )
-        # Configure histogram
-        hist.GetXaxis().SetTitle("Cal")
-        hist.GetYaxis().SetTitle(f"Counts")
-        hist.SetTitle(f"Column = {i}")
-        hist.Draw()
-
-        histograms[i] = hist
-
-    canvas.Update()
-
-    # Keep the canvas open until user input
-    input("Press Enter to continue...")
-    return histograms
-
 
 ######################################################
 # Stacked plots                                      #
