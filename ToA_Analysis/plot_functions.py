@@ -229,8 +229,60 @@ def fit_ToA_sin(df=None, toa_histogram=None, title=""):
         else:
             return x_max, x_min, fit.GetParameter("Angular Frequency"), fit.GetParError(1)
 
-    
+    except ValueError as e:
+        print(f"\033[91mError: {e}\033[0m")
+        return
 
+
+def fit_ToACODE_sin(df=None, toa_histogram=None, title=""):
+    """
+    Fit the ToA code to a sinusoidal function
+    Args:
+        df (ROOT.RDataFrame): RDataFrame with the hits. Default is None.
+        toa_histogram (ROOT.TH1F): ToA histogram. Default is None.
+        title (str): Title of the plot. Default is None.
+    Returns:
+        x_max (float): First maximum of the sinusoidal fit
+        x_min (float): First minimum of the sinusoidal fit
+        omega (float): Angular frequency of the sinusoidal fit
+        omega_error (float): Error of the angular frequency of the sinusoidal fit
+    """
+    try:
+        if toa_histogram is None and df is None:
+            raise ValueError("Either df or toa_histogram must be provided")
+        elif toa_histogram is None:
+            toa_histogram = ToA_CODE(df, omit_plots=True)
+        
+        
+        # Fit ToA to sinusoidal
+        c = ROOT.TCanvas()
+        toa_histogram.Draw()
+        toa_histogram.GetXaxis().SetTitle("ToA CODE")
+        toa_histogram.SetTitle(title)
+        fit = ROOT.TF1("fit", "[0]*sin([1]*x+[2])+[3]", 144, 720)
+        fit.SetParNames("Amplitude", "Angular Frequency", "Phase", "Offset")
+        # Set range to amplitude so it is always positive
+        fit.SetParameter("Amplitude", 100)
+        fit.SetParLimits(0, 0, 1e6)
+        fit.SetParameter("Angular Frequency", 0.047)
+        fit.SetParLimits(1, 0, 1e6)
+        fit.SetParameter("Phase", 0)
+        fit.SetParLimits(2, -2*np.pi, 2*np.pi)
+        fit.SetParameter("Offset", 300)
+        toa_histogram.Fit(fit, "R")
+        fit.Draw("same")
+        
+        # Add text with period of the fit
+        text = ROOT.TLatex()
+        text.SetNDC()
+        text.SetTextSize(0.03)
+        text.DrawLatex(0.7, 0.8, f"Period: {2*np.pi/fit.GetParameter("Angular Frequency"):.3f}")
+        c.Update()
+        c.Draw()
+        # Print error of angular frequency
+        print(f"Period: {2*np.pi/fit.GetParameter('Angular Frequency')} +- {2*np.pi*np.log(fit.GetParameter('Angular Frequency'))*fit.GetParError(1)}")
+        input("Press Enter to continue...")
+        
     except ValueError as e:
         print(f"\033[91mError: {e}\033[0m")
         return
@@ -287,13 +339,16 @@ def fast_fourier_transform_ToA(df=None, toa_histogram=None, title=None):
         print(f"\033[91mError: {e}\033[0m")
         return
 
-def ToA_CODE(df, title=""):
+def ToA_CODE(df, title="", omit_plots=False):
     """
     Plot the ToA_CODE of the ETROC
     
     Args:
         df (ROOT.RDataFrame): RDataFrame with the hits
         title (str): Title of the plot. Default is ""
+        omit_plots (bool): If True, the plot will not be shown. Default is False
+    Returns:
+        hist (ROOT.TH1F): Histogram with the ToA_CODE values
     """
     canvas = ROOT.TCanvas()
 
@@ -314,7 +369,9 @@ def ToA_CODE(df, title=""):
 
     canvas.Update()
     # Keep the canvas open until user input
-    input("Press Enter to continue...")
+    if not omit_plots:
+        input("Press Enter to continue...")
+    return hist
     
 
 def t_bin(df):

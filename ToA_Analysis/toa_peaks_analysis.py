@@ -37,14 +37,17 @@ def main(inputfiles):
         df = df.Filter(filter)
         max_cal = u.get_max_cal(df)
         print(f"Max cal : {max_cal}")
-        # Filter to the max cal
-        select_bin = -1
-        filter = f"abs(cal-({max_cal}+{select_bin}))<0.5"
+        # # Filter to the max cal
+        select_bin = 0
+        filter = f"abs(cal-({max_cal}+{select_bin}))<2.5"
         print(filter)
         df = df.Filter(filter)
         title = title + f"__{select_bin}"
         # pf.plot_cal(df)
-        x_min, x_max, om, om_error =pf.fit_ToA_sin(df=df, title=title)
+        # toa_code = pf.ToA_CODE(df)
+
+        x_min, x_max, om, om_error =pf.fit_ToA_sin(df = df, title=title)
+        pf.fit_ToACODE_sin(df = df, title=title)
         if om != None:
             first_minimum.append(x_min)
             first_maximum.append(x_max)
