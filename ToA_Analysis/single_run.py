@@ -31,15 +31,16 @@ def main(inputfile):
     # pf.hit_map(df)
 
     # Define the Analogical_LV column as the left/right side of the ETROC
+    pf.plot_cal(df)
     df = df.Define("Analogical_LV", "floor(col/8)")
     # filter = "Analogical_LV == 0"
-    filter = "col == 12 && row == 6 && cal > 0"
+    filter = "col == 5 && row == 6"
     print(filter)
     df = df.Filter(filter)
     # pf.hit_map(df)
-
+    pf.ToA_CODE(df)
     # # Plot the Cal
-    # pf.plot_cal(df)
+    pf.plot_cal(df)
 
     # # Get relation between number hits cal = -1,0,1
     # rel01, rel0m1, rel01m1 = u.get_Cal_relation(df)
@@ -63,13 +64,16 @@ def main(inputfile):
     # # filter = "cal > 0"
     print(filter)
     df = df.Filter(filter)
-    # pf.plot_cal(df)
+    pf.plot_cal(df)
 
     # pf.ToA_CODE(df)
     # Compute ToT
-    df = u.compute_ToT(df)
-    # Plot the ToT
-    pf.ToT(df, title=title)
+    # df = u.compute_ToT(df)
+    # # Plot the ToT
+    # pf.ToT(df, title=title)
+    df = u.compute_tbin(df)
+    df = u.compute_ToA(df)
+    pf.ToA(df, title=title)
 
     ######################################################
     # Plot ToA with mean Cal, each one Cal and max Cal   #
@@ -77,12 +81,12 @@ def main(inputfile):
     # # Compute ToA
     # df_mean = u.compute_ToA(df, mean_cal)
     # # Plot the ToA
-    # h_mean = pf.ToA(df_mean, title=title)
+    # h_mean = pf.ToA(df_mean, title=title, omit_plots=True)
     # df_max = u.compute_ToA(df, max_cal)
     # # Plot the ToA
-    # h_max = pf.ToA(df_max, title=title)
+    # h_max = pf.ToA(df_max, title=title, omit_plots=True)
     # df_each = u.compute_ToA(df)
-    # h_each = pf.ToA(df_each, title=title)
+    # h_each = pf.ToA(df_each, title=title, omit_plots=True)
     # # Plot both histograms together
     # ROOT.gStyle.SetOptStat(0)
     # c = ROOT.TCanvas()
@@ -98,6 +102,7 @@ def main(inputfile):
     # h_each.Draw("same")
     # legend.AddEntry(h_each.GetValue(), f"Each cal", "l")
     # legend.Draw()
+    # c.SetTitle(title)
     # c.Draw()
     # input("Press Enter to continue...")
     # toa_histograms = pf.ToA(df, title=title, omit_plots=True)

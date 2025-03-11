@@ -27,7 +27,7 @@ def main(inputfiles):
         title = inputfile.split('/')[-1].split('.')[0]
         # Define the Analogical_LV column as the left/right side of the ETROC
         df = df.Define("Analogical_LV", "floor(col/8)")
-        filter = "Analogical_LV == 1"
+        filter = "Analogical_LV == 0"
         print(filter)
         df = df.Filter(filter)
         # pf.event_number(df)
