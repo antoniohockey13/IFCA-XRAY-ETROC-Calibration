@@ -8,7 +8,7 @@ import numpy as np
 sifca_utils.plotting.set_sifca_style()
 
 # Set ROOT to batch mode if plots are omitted
-omit_plots = True
+omit_plots = False
 ROOT.gROOT.SetBatch(omit_plots)
 
 
@@ -31,15 +31,20 @@ def main(inputfiles):
 
         df = ROOT.RDataFrame("Hits", inputfile)
         title = inputfile.split('/')[-1].split('.')[0]
-        # Define the Analogical_LV column as the left/right side of the ETROC
-        df = df.Define("Analogical_LV", "floor(col/8)")
-        filter = "col == 12 && row == 6 && cal > 0"
+        if title[0:7] == "2025_02":
+            filter = "col == 5 && row == 6 && cal > 0"
+        elif title[0:7] == "2025_03":
+            filter = "col == 7 && row == 6 && cal > 0"
+        else:
+            raise ValueError(f"Unknown configuration {title[0:7]}")
+        
+        # filter = "col == 12 && row == 6 && cal > 0"
         print(filter)
         df = df.Filter(filter)
         max_cal = u.get_max_cal(df)
         print(f"Max cal : {max_cal}")
         # # Filter to the max cal
-        select_bin = -1
+        select_bin = -1 
         filter = f"abs(cal-({max_cal}+{select_bin}))<0.5"
         print(filter)
         df = df.Filter(filter)
