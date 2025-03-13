@@ -28,13 +28,14 @@ def main(inputfile):
     df = ROOT.RDataFrame("Hits", inputfile)
     title = inputfile.split('/')[-1].split('.')[0]
     # Plot the hit map
-    # pf.hit_map(df)
+    pf.hit_map(df)
 
     # Define the Analogical_LV column as the left/right side of the ETROC
-    pf.plot_cal(df)
-    df = df.Define("Analogical_LV", "floor(col/8)")
+    # pf.plot_cal(df)
+    # df = df.Define("Analogical_LV", "floor(col/8)")
     # filter = "Analogical_LV == 0"
-    filter = "col == 5 && row == 6"
+    filter = "col == 7 && row == 6"
+    # filter = "col == 5 && row == 6"
     print(filter)
     df = df.Filter(filter)
     # pf.hit_map(df)
@@ -59,12 +60,13 @@ def main(inputfile):
     # Filter to the max cal
     select_bin = 0
     filter = f"abs(cal-({max_cal}+{select_bin}))<0.5"
+    # filter = f"abs(cal-({max_cal}+{select_bin}))<0.5"
     # # filter = f"cal == {max_cal}+1 || cal == {max_cal}-1"
     # # filter = f"abs(cal-{max_cal})< 0.5"
     # # filter = "cal > 0"
     print(filter)
     df = df.Filter(filter)
-    pf.plot_cal(df)
+    # pf.plot_cal(df)
 
     # pf.ToA_CODE(df)
     # Compute ToT
@@ -73,6 +75,7 @@ def main(inputfile):
     # pf.ToT(df, title=title)
     df = u.compute_tbin(df)
     df = u.compute_ToA(df)
+    pf.ToA_CODE(df)
     pf.ToA(df, title=title)
 
     ######################################################
