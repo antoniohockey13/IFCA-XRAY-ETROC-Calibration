@@ -446,6 +446,44 @@ def cal_vs_event_number(df, title=""):
     # Keep the canvas open until user input
     input("Press Enter to continue...")
 
+
+def ToA_vs_event_number(df, title=""):
+    """
+    Plot the ToA vs the event number
+    This way the evolution of the ToA during the run can be studied
+    Args:
+        df (ROOT.RDataFrame): RDataFrame with the hits
+        title (str): Title of the plot. Default is ""
+    """
+
+    # Remove statistics values
+    ROOT.gStyle.SetOptStat(00000)
+    canvas = ROOT.TCanvas()
+    max = df.Max("event_number").GetValue()
+    size = 500
+    bin_number = int(max/size)
+    toa_min, toa_max, toa_bin_number = u.get_ToA_histograms_limits(df.Mean("t_bin").GetValue())
+    hist = df.Histo2D(
+        ("toa-eventnumber", f"", bin_number, 0, max, toa_bin_number, toa_min, toa_max), "event_number", "ToA"
+    ).GetValue().ProfileX()
+    hist.GetXaxis().SetTitle("Event number")
+    hist.GetYaxis().SetTitle("ToA")
+    hist.SetTitle(title)
+    # Fit to 1 degree pol
+    fit = hist.Fit("pol1", "S")
+    hist.Draw()
+
+    # Add text with the fit result
+    text = ROOT.TLatex()
+    text.SetNDC()
+    text.SetTextSize(0.03)
+    text.DrawLatex(0.2, 0.2, f" y = ({fit.Parameter(1):.2e}+-{fit.ParError(1):.2e})x + {fit.Parameter(0):.2f}+-{fit.ParError(0):.2f}")
+
+
+    canvas.Update()
+    # Keep the canvas open until user input
+    input("Press Enter to continue...")
+
 ######################################################
 # Stacked plots                                      #
 # Functions to compare different runs/cuts           #

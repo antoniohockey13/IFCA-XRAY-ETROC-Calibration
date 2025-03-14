@@ -29,6 +29,7 @@ def main(inputfile):
     title = inputfile.split('/')[-1].split('.')[0]
     # Plot the hit map
     pf.hit_map(df)
+    pf.plot_cal(df)
 
     # Define the Analogical_LV column as the left/right side of the ETROC
     # pf.plot_cal(df)
