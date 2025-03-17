@@ -28,8 +28,8 @@ def main(inputfile):
     df = ROOT.RDataFrame("Hits", inputfile)
     title = inputfile.split('/')[-1].split('.')[0]
     # Plot the hit map
-    pf.hit_map(df)
-    pf.plot_cal(df)
+    # pf.hit_map(df)
+    # pf.plot_cal(df)
 
     # Define the Analogical_LV column as the left/right side of the ETROC
     # pf.plot_cal(df)
@@ -37,10 +37,11 @@ def main(inputfile):
     # filter = "Analogical_LV == 0"
     filter = "col == 7 && row == 6"
     # filter = "col == 5 && row == 6"
+    # filter = "col == 12 && row == 6"
     print(filter)
     df = df.Filter(filter)
     # pf.hit_map(df)
-    pf.ToA_CODE(df)
+    # pf.ToA_CODE(df)
     # # Plot the Cal
     pf.plot_cal(df)
 
@@ -54,16 +55,14 @@ def main(inputfile):
     # mean_cal, sigma = u.get_mean_cal(df)
     # print(f"Mean cal : {mean_cal}+-{sigma}")
     
-    # # Get the max cal
+    # Get the max cal
     max_cal = u.get_max_cal(df)
-    print(f"Max cal : {max_cal}")
+    # print(f"Max cal : {max_cal}")
 
-    # Filter to the max cal
+    # # Filter to the max cal
     select_bin = 0
     filter = f"abs(cal-({max_cal}+{select_bin}))<0.5"
-    # filter = f"abs(cal-({max_cal}+{select_bin}))<0.5"
     # # filter = f"cal == {max_cal}+1 || cal == {max_cal}-1"
-    # # filter = f"abs(cal-{max_cal})< 0.5"
     # # filter = "cal > 0"
     print(filter)
     df = df.Filter(filter)
@@ -76,7 +75,7 @@ def main(inputfile):
     # pf.ToT(df, title=title)
     df = u.compute_tbin(df)
     df = u.compute_ToA(df)
-    pf.ToA_CODE(df)
+    # pf.ToA_CODE(df)
     pf.ToA(df, title=title)
 
     ######################################################

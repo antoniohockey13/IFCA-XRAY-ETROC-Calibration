@@ -125,7 +125,7 @@ def compute_ToT(df, cal=None):
     return df
 
 
-def get_ToA_histograms_limits(t_bin, size = 14):
+def get_ToA_histograms_limits(t_bin, size = 12.5):
     """
     Get the limits for the histograms
 
@@ -143,6 +143,7 @@ def get_ToA_histograms_limits(t_bin, size = 14):
     min_toa = -bin_size/2
     max_toa = size+bin_size/2
     bin_number = int((max_toa-min_toa)/bin_size)
+    # If binning not working try to add/remove 1 unit
     return min_toa, max_toa, bin_number
 
 

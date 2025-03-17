@@ -141,8 +141,7 @@ def ToA(df, title="", omit_plots=False):
     canvas = ROOT.TCanvas()
     
     # Compute histogram limits
-    min_toa, max_toa, bin_number = u.get_ToA_histograms_limits(df.Mean("t_bin").GetValue())
-
+    min_toa, max_toa, bin_number = u.get_ToA_histograms_limits(df.Mean("t_bin").GetValue(), size=12.5)
 	# Plot histogram
     hist = df.Histo1D(
         ("ToA", f"", bin_number, min_toa, max_toa), "ToA"
