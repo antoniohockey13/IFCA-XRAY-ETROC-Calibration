@@ -27,7 +27,9 @@ def main(inputfiles):
         # Define the Analogical_LV column as the left/right side of the ETROC
         # df = df.Define("Analogical_LV", "floor(col/8)")
         # filter = "Analogical_LV == 0"
-        filter = "col==5 && row==6"
+        # filter = "col==5 && row==6"
+        col_max, row_max = u.get_most_hit_pixel(df)
+        filter = f"col == {col_max} && row == {row_max}"
         print(filter)
         df = df.Filter(filter)
         max_cal = u.get_max_cal(df)

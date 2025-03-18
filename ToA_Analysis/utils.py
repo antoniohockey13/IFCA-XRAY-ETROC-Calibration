@@ -1,6 +1,8 @@
 import ROOT
 import numpy as np
 import plot_functions as pf
+import ctypes
+
 
 ns = 1
 # Constant value dependant only on the ETROC configuration 
@@ -168,3 +170,26 @@ def get_ToT_histograms_limits(t_bin, size = 7):
     bin_number = int((max_tot-min_tot)/bin_size)
     return min_tot, max_tot, bin_number
 
+def get_most_hit_pixel(df):
+    """
+    Get the pixel with the highest number of hits in the hit map.
+
+    Args:
+        df: ROOT.RDataFrame    
+    Returns:
+        col (int): Column of the pixel
+        row (int): Row of the pixel
+    """
+    hit_map = pf.hit_map(df, omit_plots=True)
+    # Get the global bin number of the max value
+    max_bin = hit_map.GetMaximumBin()  
+    
+    # Use ctypes to store integer values that can be modified by ROOT
+    binx, biny, binz = ctypes.c_int(0), ctypes.c_int(0), ctypes.c_int(0)
+    # Get bin indices
+    hit_map.GetBinXYZ(max_bin, binx, biny, binz)
+    # Convert ctypes values to Python integers
+    binx_val = binx.value
+    biny_val = biny.value
+    col, row = (binx_val - 1, biny_val - 1)  # Convert ROOT bins (1-based) to matrix indices (0-based)
+    return col, row

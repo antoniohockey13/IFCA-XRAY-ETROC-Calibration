@@ -30,15 +30,8 @@ def main(inputfiles):
             raise ValueError(f"Input file must have .root extension and it has .{inputfile.split('.')[-1]}")
 
         df = ROOT.RDataFrame("Hits", inputfile)
-        title = inputfile.split('/')[-1].split('.')[0]
-        if title[0:7] == "2025_02":
-            filter = "col == 5 && row == 6 && cal > 0"
-        elif title[0:7] == "2025_03":
-            filter = "col == 7 && row == 6 && cal > 0"
-        else:
-            raise ValueError(f"Unknown configuration {title[0:7]}")
-        
-        # filter = "col == 12 && row == 6 && cal > 0"
+        col_max, row_max = u.get_most_hit_pixel(df)
+        filter = f"col == {col_max} && row == {row_max}"
         print(filter)
         df = df.Filter(filter)
         max_cal = u.get_max_cal(df)

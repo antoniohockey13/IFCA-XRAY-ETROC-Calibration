@@ -15,12 +15,13 @@ colors = [
 # Not to compare plots                               #
 ######################################################
 
-def hit_map(df, title=""):
+def hit_map(df, title="", omit_plots=False):
     """
     Plot the hit map of the ETROC. It is a matrix 16x16
     Args:
         df (ROOT.RDataFrame): RDataFrame with the hits
         title (str): Title of the plot. Default is ""
+        omit_plots (bool): If True, the plot will not be shown. Default is False
     Returns:
         hit_map (ROOT.TH2F): Hit map histogram
         max_pixel (int): Pixel with the highest number of entries
@@ -36,7 +37,8 @@ def hit_map(df, title=""):
     c.Update()
     c.Draw()
     # Keep the canvas open until user input
-    input("Press enter to continue...")
+    if not omit_plots:
+        input("Press enter to continue...")
     return hit_map
 
 
@@ -141,7 +143,7 @@ def ToA(df, title="", omit_plots=False):
     canvas = ROOT.TCanvas()
     
     # Compute histogram limits
-    min_toa, max_toa, bin_number = u.get_ToA_histograms_limits(df.Mean("t_bin").GetValue(), size=12.5)
+    min_toa, max_toa, bin_number = u.get_ToA_histograms_limits(df.Mean("t_bin").GetValue(), size=14)
 	# Plot histogram
     hist = df.Histo1D(
         ("ToA", f"", bin_number, min_toa, max_toa), "ToA"
@@ -674,6 +676,33 @@ def draw_Cal_together_different_canvas(df_dict):
         text.SetNDC()
         text.SetTextSize(0.04)
         text.DrawLatex(0.6, 0.7, f"Max cal = {u.get_max_cal(df)}")
+    c.Update()
+    c.Draw()
+    input("Press enter to continue...")
+
+
+def draw_Cal_together_same_canvas(df_dict):
+    """
+    """
+    c = ROOT.TCanvas()
+    hist = []
+    legend = ROOT.TLegend(0.2, 0.8, 0.5, 0.9)
+    for i, (name, df) in enumerate(df_dict.items()):
+        if i > 0:
+            opt = "same"
+        else:  
+            opt = ""
+        ROOT.gPad.SetLogy()
+        hist.append(df.Histo1D(
+            ("cal", f"", 1024, -0.5, 1023.5), "cal"
+        ).GetValue())
+        hist[-1].GetXaxis().SetTitle("Cal")
+        hist[-1].GetYaxis().SetTitle(f"Counts")
+        hist[-1].SetLineColor(colors[i])
+        hist[-1].SetDirectory(0)
+        legend.AddEntry(hist[-1], f"{name}", "l")
+        hist[-1].Draw(opt)
+    legend.Draw()
     c.Update()
     c.Draw()
     input("Press enter to continue...")
