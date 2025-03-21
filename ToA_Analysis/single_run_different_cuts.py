@@ -1,8 +1,12 @@
 import ROOT
 import click
 import sifca_utils
-import utils as u
-import plot_functions as pf
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from Utils import utils as u
+from Utils import plot_functions as pf
 
 sifca_utils.plotting.set_sifca_style()
 

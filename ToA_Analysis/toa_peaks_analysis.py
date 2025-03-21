@@ -1,10 +1,14 @@
 import ROOT
 import click
-import sifca_utils
-import utils as u
-import plot_functions as pf
 import numpy as np
+import sifca_utils
 
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from Utils import utils as u
+from Utils import plot_functions as pf
 sifca_utils.plotting.set_sifca_style()
 
 # Set ROOT to batch mode if plots are omitted
@@ -28,7 +32,7 @@ def main(inputfiles):
         # Open the file
         if inputfile.split('.')[-1] != 'root':
             raise ValueError(f"Input file must have .root extension and it has .{inputfile.split('.')[-1]}")
-
+        title = inputfile.split('/')[-1].split('.')[0]
         df = ROOT.RDataFrame("Hits", inputfile)
         col_max, row_max = u.get_most_hit_pixel(df)
         filter = f"col == {col_max} && row == {row_max}"

@@ -1,6 +1,7 @@
 import ROOT
-import utils as u
 import numpy as np
+
+from . import utils as u
 
 # Map sensor positions
 SENSOR_POS = {"6": 1, "7": 3, "8": 4, "9": 2}

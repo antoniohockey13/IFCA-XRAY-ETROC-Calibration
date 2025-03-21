@@ -1,7 +1,8 @@
 import ROOT
 import numpy as np
-import plot_functions as pf
 import ctypes
+
+from . import plot_functions as pf
 
 
 ns = 1

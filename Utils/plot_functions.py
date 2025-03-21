@@ -1,6 +1,7 @@
 import ROOT
-import utils as u
 import numpy as np
+
+from . import utils as u
 
 colors = [
     ROOT.kRed+1, ROOT.kBlue+1,ROOT.kGreen+2, ROOT.kRed-7, ROOT.kBlue-7, ROOT.kGreen-5,

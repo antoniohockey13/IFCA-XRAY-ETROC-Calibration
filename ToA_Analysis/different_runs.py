@@ -1,8 +1,13 @@
 import ROOT
 import click
 import sifca_utils
-import utils as u
-import plot_functions as pf
+
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from Utils import utils as u
+from Utils import plot_functions as pf
 
 sifca_utils.plotting.set_sifca_style()
 
@@ -23,12 +28,11 @@ def main(inputfiles):
 
     max_cal_dict = {}
     bin_selected = 0
-    col_max, row_max = u.get_most_hit_pixel(df_dict)
     for name, df in df_dict.items():
         # Define the Analogical_LV column as the left/right side of the ETROC
         # df = df.Define("Analogical_LV", "floor(col/8)")
         # Filter in Analogical LV
-        col_max, row_max = u.get_most_hit_pixel(df_dict)
+        col_max, row_max = u.get_most_hit_pixel(df)
         filter_region = f"col == {col_max} && row == {row_max}"
         print(filter_region)
         df_i = df.Filter(filter_region)
