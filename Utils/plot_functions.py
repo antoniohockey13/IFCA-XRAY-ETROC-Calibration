@@ -92,7 +92,7 @@ def ToT(df, title=""):
     canvas = ROOT.TCanvas()
 
     # Compute histograms limits
-    min_tot, max_tot, bin_number = u.get_ToT_histograms_limits(df.Mean("t_bin").GetValue())
+    min_tot, max_tot, bin_number = u.get_ToT_histograms_limits(df.Mean("t_bin").GetValue(), size = 7)
         
 	# Plot histogram
     hist = df.Histo1D(

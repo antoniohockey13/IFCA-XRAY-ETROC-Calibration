@@ -168,7 +168,10 @@ def get_ToT_histograms_limits(t_bin, size = 7):
     bin_size = 2*np.mean(np.array(t_bin))
     min_tot = -bin_size/2
     max_tot = size+bin_size/2
-    bin_number = int((max_tot-min_tot)/bin_size)
+    bin_number = (max_tot-min_tot)/bin_size
+    bin_number = int(np.ceil(bin_number))
+    max_tot = min_tot + bin_number*bin_size
+
     return min_tot, max_tot, bin_number
 
 def get_most_hit_pixel(df):
