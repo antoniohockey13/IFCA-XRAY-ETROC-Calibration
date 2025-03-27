@@ -79,13 +79,14 @@ def plot_cal(df, color = ROOT.kBlack, title="", omit_plots=False):
 
     return hist.GetValue()
 
-def ToT(df, title=""):
+def ToT(df, title="", omit_plots = False):
     """
     Plot the ToT of the ETROC in ns
     
     Args:
         df (ROOT.RDataFrame): RDataFrame with the hits
         title (str): Title of the plot. Default is ""
+        omit_plots (bool): If True, the plot will not be shown. Default is False
     """
     if "ToT" not in df.GetColumnNames():
         df = u.compute_ToT(df)
@@ -105,7 +106,8 @@ def ToT(df, title=""):
 
     canvas.Update()
     # Keep the canvas open until user input
-    input("Press Enter to continue...")  
+    if not omit_plots:
+        input("Press Enter to continue...")  
     return hist
 
 def ToT_CODE(df, title=""):
