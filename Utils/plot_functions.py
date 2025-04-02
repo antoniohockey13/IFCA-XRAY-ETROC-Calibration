@@ -79,12 +79,13 @@ def plot_cal(df, color = ROOT.kBlack, title="", omit_plots=False):
 
     return hist.GetValue()
 
-def ToT(df, title="", omit_plots = False):
+def ToT(df, size=7, title="", omit_plots = False):
     """
     Plot the ToT of the ETROC in ns
     
     Args:
         df (ROOT.RDataFrame): RDataFrame with the hits
+        size (int): Size of the histogram. Default is 7
         title (str): Title of the plot. Default is ""
         omit_plots (bool): If True, the plot will not be shown. Default is False
     """
@@ -93,7 +94,7 @@ def ToT(df, title="", omit_plots = False):
     canvas = ROOT.TCanvas()
 
     # Compute histograms limits
-    min_tot, max_tot, bin_number = u.get_ToT_histograms_limits(df.Mean("t_bin").GetValue(), size = 7)
+    min_tot, max_tot, bin_number = u.get_ToT_histograms_limits(df.Mean("t_bin").GetValue(), size=size)
         
 	# Plot histogram
     hist = df.Histo1D(
@@ -686,6 +687,12 @@ def draw_Cal_together_different_canvas(df_dict):
 
 def draw_Cal_together_same_canvas(df_dict):
     """
+    Draw the Cal histograms in the same canvas for the different runs
+    df_dict (dict): Dictionary with the different dataframes
+        keys: Name of the run
+        values: RDataFrame with the hits
+    colors (list): List of colors for the histograms
+
     """
     c = ROOT.TCanvas()
     hist = []
@@ -700,6 +707,40 @@ def draw_Cal_together_same_canvas(df_dict):
             ("cal", f"", 1024, -0.5, 1023.5), "cal"
         ).GetValue())
         hist[-1].GetXaxis().SetTitle("Cal")
+        hist[-1].GetYaxis().SetTitle(f"Counts")
+        hist[-1].SetLineColor(colors[i])
+        hist[-1].SetDirectory(0)
+        legend.AddEntry(hist[-1], f"{name}", "l")
+        hist[-1].Draw(opt)
+    legend.Draw()
+    c.Update()
+    c.Draw()
+    input("Press enter to continue...")
+
+def draw_ToT_together_same_canvas(df_dict):
+    """
+    Draw the ToT histograms in the same canvas for the different runs
+    df_dict (dict): Dictionary with the different dataframes
+        keys: Name of the run
+        values: RDataFrame with the hits
+    colors (list): List of colors for the histograms
+    """
+    c = ROOT.TCanvas()
+    hist = []
+    legend = ROOT.TLegend(0.65, 0.7, 0.8, 0.9)
+    for i, (name, df) in enumerate(df_dict.items()):
+        if i > 0:
+            opt = "same"
+        else:  
+            opt = ""
+        # Compute histogram limits
+        min_tot, max_tot, bin_number = u.get_ToT_histograms_limits(df.Mean("t_bin").GetValue(), size=20)
+        
+        # Plot histogram
+        hist.append(df.Histo1D(
+            ("ToT", f"", bin_number, min_tot, max_tot), "ToT"
+        ).GetValue())
+        hist[-1].GetXaxis().SetTitle("ToT/ns")
         hist[-1].GetYaxis().SetTitle(f"Counts")
         hist[-1].SetLineColor(colors[i])
         hist[-1].SetDirectory(0)
