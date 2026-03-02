@@ -29,7 +29,7 @@ def hit_map(df, title="", omit_plots=False):
     """
     c = ROOT.TCanvas()
     c.SetRightMargin(0.2) 
-    hit_map = df.Histo2D(("hit_map", "Hit map", 17, -0.5, 16.5, 17, -0.5, 16.5), "col", "row")
+    hit_map = df.Histo2D(("hit_map", "Hit map", 16, -0.5, 15.5, 16, -0.5, 15.5), "col", "row")
     hit_map.GetXaxis().SetTitle("Column")
     hit_map.GetYaxis().SetTitle("Row")
     hit_map.GetZaxis().SetTitle("Hits")
@@ -750,3 +750,49 @@ def draw_ToT_together_same_canvas(df_dict):
     c.Update()
     c.Draw()
     input("Press enter to continue...")
+
+
+def hit_map_E(df, title="", omit_plots=False, outpath_png=None):
+    """
+    Hit map 16x16 for ETROC pixels.
+    X: col (0..15), Y: row (0..15), Z: hits
+    """
+
+    # Style
+    ROOT.gStyle.SetOptStat(0)
+
+    c = ROOT.TCanvas("c_hit_map", "Hit map", 900, 750)
+    c.SetRightMargin(0.18)  # space for the color bar
+    c.SetLeftMargin(0.12)
+    c.SetBottomMargin(0.12)
+
+    # 16 bins: -0.5 .. 15.5  => pixels 0..15 centered
+    h2 = df.Histo2D(
+        ("hit_map_16x16", "", 16, -0.5, 15.5, 16, -0.5, 15.5),
+        "col", "row"
+    ).GetValue()
+
+    h2.SetTitle(title)
+    h2.GetXaxis().SetTitle("Column")
+    h2.GetYaxis().SetTitle("Row")
+    h2.GetZaxis().SetTitle("Hits")
+
+    # Make it look like your example: square pixels, colored density
+    h2.GetXaxis().CenterLabels(True)
+    h2.GetYaxis().CenterLabels(True)
+    h2.GetXaxis().SetNdivisions(16, False)
+    h2.GetYaxis().SetNdivisions(16, False)
+
+    # Optional: draw grid lines similar to the example (subtle)
+    ROOT.gPad.SetGrid(0, 0)
+
+    h2.Draw("COLZ")
+    c.Update()
+
+    if outpath_png is not None:
+        c.SaveAs(outpath_png)
+
+    if not omit_plots:
+        input("Press Enter to continue...")
+
+    return h2

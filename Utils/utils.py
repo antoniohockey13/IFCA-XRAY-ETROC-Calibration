@@ -184,7 +184,7 @@ def get_most_hit_pixel(df):
         col (int): Column of the pixel
         row (int): Row of the pixel
     """
-    hit_map = pf.hit_map(df, omit_plots=True)
+    hit_map = pf.hit_map(df, omit_plots=False)
     # Get the global bin number of the max value
     max_bin = hit_map.GetMaximumBin()  
     
