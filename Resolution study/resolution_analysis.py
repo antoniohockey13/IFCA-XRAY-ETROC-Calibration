@@ -68,8 +68,7 @@ def build_hit_map(root_file, key="l1counter", choose="max_tot"):
 @click.option("--nbins", default=200, type=int)
 @click.option("--range_ns", default=5.0, type=float,
               help="Histogram range will be [-range_ns, +range_ns] in ns.")
-@click.option("--pause", is_flag=True, help="Wait for Enter to close canvas.")
-def main(root1, root2, key, choose, outdir, nbins, range_ns, pause):
+def main(root1, root2, key, choose, outdir, nbins, range_ns):
     os.makedirs(outdir, exist_ok=True)
 
     print(f"[INFO] Reading 1: {root1}")
@@ -144,8 +143,7 @@ def main(root1, root2, key, choose, outdir, nbins, range_ns, pause):
     print(f"[RESULT] sigma(ΔToA) = {sigma:.6f} ± {sigma_err:.6f} ns")
     print(f"[RESULT] sigma_single ≈ {sigma_single:.6f} ± {sigma_single_err:.6f} ns (assumes equal sensors)")
 
-    if pause:
-        input("Press Enter to continue...")
+    input("Press Enter to continue...")
 
 if __name__ == "__main__":
     main()

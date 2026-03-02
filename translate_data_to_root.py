@@ -44,13 +44,13 @@ def main(inputfiles):
     variables = {
         # EH
         'event_number': create_array(),
-        'version': create_array(),
-        'hits_count': create_array(),
+        'event_type': create_array(),
         'num_words': create_array(),
 
         # H
         'channel_h': create_array(),
-        'l1counter': create_array(),
+        'l1counter_hw': create_array(), 
+        'l1counter_global': create_array(), 
         'type': create_array(),
         'bcid': create_array(),
         # D
@@ -67,10 +67,10 @@ def main(inputfiles):
         'hits_t': create_array(),
         'crc': create_array(),
         # ET
-        'et_event_number': create_array(),
-        'et_event_type': create_array(),
+        'et_num_hits': create_array(),
         'et_overflow_count': create_array(),
         'et_hamming_count': create_array(),
+        'et_crc': create_array(),
         # GLobal event counter
         'event_id': create_array(),
     }
@@ -81,16 +81,27 @@ def main(inputfiles):
         hits_tree.Branch(var_name, var, f"{var_name}/I")
 
 
-    event_id = 0
+    event_id = 1
     previous_hw_event = None
     overflow_counter = 0
+    event_at_reset = 0 
     previous_l1 = None
     l1_overflow = 0
+    number_of_resets = 0
     MAX_8BIT = 256
 
-    MAX_16BIT = 65536
+    MAX_16BIT = 65535
 
-    for inputfile in tqdm(inputfiles):
+    import re
+
+    def extract_number(filename):
+        # Extrae el último número que aparezca en el nombre
+        numbers = re.findall(r'\d+', os.path.basename(filename))
+        return int(numbers[-1]) if numbers else -1
+
+    sorted_files = sorted(inputfiles, key=extract_number)
+
+    for inputfile in tqdm(sorted_files):
         with open(inputfile) as f:
             lines = f.readlines()
             
@@ -107,40 +118,57 @@ def main(inputfiles):
                 iline += 1
                 continue
 
-            l1_hw = int(lines[iline + 1].split()[2])  # posición del l1counter
+                
+            l1_hw = int(lines[iline + 1].split()[2])
 
             if previous_l1 is not None:
-                # Detectar wrap real (255 -> 0)
                 if previous_l1 > 200 and l1_hw < 50:
                     l1_overflow += 1
 
             l1_global = l1_overflow * MAX_8BIT + l1_hw
-
             previous_l1 = l1_hw
 
-            variables['l1counter'][0] = l1_global
+            variables['l1counter_hw'][0] = l1_hw
+            variables['l1counter_global'][0] = l1_global
 
             # Parse EH y H
             try:
                 parts = lines[iline].split()
                 hw_event = int(parts[1]) # 16-bit
+                event_type = int(parts[2])
+                num_words = int(parts[3])
                 if previous_hw_event is not None:
-                    if hw_event < previous_hw_event:
+                    if  hw_event <= previous_hw_event:
                         overflow_counter += 1
+                        event_at_reset = previous_hw_event + event_at_reset
+                        if hw_event == 0:
+                            event_at_reset += 1
+                        print(f"Reset detected at line {iline} in file {inputfile}, previous_hw_event: {previous_hw_event}, current_hw_event: {hw_event}, total overflows: {overflow_counter}")
             
-                global_event_number = overflow_counter * MAX_16BIT + hw_event
+                global_event_number = event_at_reset + hw_event
 
 
                 variables['event_number'][0] = global_event_number
-                variables['version'][0] = int(parts[2])
-                variables['hits_count'][0] = int(parts[3])
-                variables['num_words'][0] = int(parts[4])
+                variables['event_type'][0] = event_type
+                variables['num_words'][0] = num_words
 
                 previous_hw_event = hw_event
+                if previous_hw_event == 0:
+                    number_of_resets += 1
+                    print(f"Reset detected at line {iline}, total resets: {number_of_resets}")
+                    print(f"Global event numer at reset: {global_event_number}")
 
-                variables['channel_h'][0], variables['l1counter'][0], variables['type'][0], variables['bcid'][0] = \
+                variables['channel_h'][0], variables['l1counter_hw'][0], variables['type'][0], variables['bcid'][0] = \
                     map(int, lines[iline + 1].split()[1:])
-                
+
+                if inputfile == "/media/elenamr/B6EB-8B99/2Kintex/K2/run_569/file_242.sem":
+                    print(f"{global_event_number}")
+                    print(f"Event ID = {event_id}")
+
+
+                #if event_id != global_event_number:
+                #    print(f"Warning: event_id {event_id} does not match global_event_number {global_event_number} at line {iline} in file {inputfile}")    
+                #    input()    
             except Exception:
                 iline += 1
                 continue
@@ -172,15 +200,21 @@ def main(inputfiles):
             if j + 1 < nlines and lines[j + 1].startswith('ET'):
                 try:
                     parts_et = lines[j + 1].split()
-                    variables['et_event_number'][0] = int(parts_et[1])
-                    variables['et_event_type'][0] = int(parts_et[2])
-                    variables['et_overflow_count'][0] = int(parts_et[3])
-                    variables['et_hamming_count'][0] = int(parts_et[4])
+                    # Ejemplo esperado: "ET num_hits overflow_count hamming_count crc"
+                    variables['et_num_hits'][0] = int(parts_et[1])
+                    variables['et_overflow_count'][0] = int(parts_et[2])
+                    variables['et_hamming_count'][0] = int(parts_et[3])
+                    variables['et_crc'][0] = int(parts_et[4])
                 except Exception:
-                    variables['et_event_number'][0] = -1
-                    variables['et_event_type'][0] = -1
+                    variables['et_num_hits'][0] = -1
                     variables['et_overflow_count'][0] = -1
                     variables['et_hamming_count'][0] = -1
+                    variables['et_crc'][0] = -1
+            else:
+                variables['et_num_hits'][0] = -1
+                variables['et_overflow_count'][0] = -1
+                variables['et_hamming_count'][0] = -1
+                variables['et_crc'][0] = -1
 
             # Fill once per hit
             for d in d_lines:
@@ -199,6 +233,9 @@ def main(inputfiles):
                 iline = j + 2
             else:
                 iline = j + 1
+
+
+            
             
     hits_tree.Write()
     hits.Close()
