@@ -30,7 +30,7 @@ def main(inputfiles):
         raise ValueError(f"Input file must have .sem extension and it has .{f.split('.')[-1]}")  
 
     run_dir = os.path.dirname(os.path.abspath(f))  
-    k_dir = os.path.basename(run_dir) 
+    k_dir = os.path.basename(os.path.dirname(run_dir)) 
     run_folder = os.path.basename(run_dir) 
 
     out_dir = os.path.join("Root_files", k_dir)

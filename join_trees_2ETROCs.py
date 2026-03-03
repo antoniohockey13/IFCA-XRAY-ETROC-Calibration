@@ -2,6 +2,7 @@ import ROOT
 import click
 import numpy as np
 import os
+from tqdm import tqdm
 from array import array
 from Utils import utils as u
 
@@ -22,6 +23,48 @@ def main(k2, k3):
 
     print(f"[INFO] Reading K3: {k3}")
     df_k3 = ROOT.RDataFrame("Hits", k3)
+
+
+    # Compute max cal
+    print("Compute and filter by the mode of cal valuesi n eaxh pixel")
+    h_max_cal_k2 = ROOT.TH2D(
+        "h2_max_cal_k2",
+        "Max CAL per pixel;col;row",
+        16, 0, 16,
+        16, 0, 16
+    )
+    h_max_cal_k3 = ROOT.TH2D(
+        "h2_max_cal_k3",
+        "Max CAL per pixel;col;row",
+        16, 0, 16,
+        16, 0, 16
+    )
+
+    cut_k2 = []
+    cut_k3 = []
+    for i_col in tqdm(range(16)):
+        for i_row in range(16):
+            df_k2_icol_irow = df_k2.Filter(f"col == {i_col} && row == {i_row}")
+            df_k3_icol_irow = df_k3.Filter(f"col == {i_col} && row == {i_row}")
+            i_cal_k2 = u.get_max_cal(df_k2_icol_irow)
+            cut_k2.append(f"(col == {i_col} && row == {i_row} && cal == {i_cal_k2})")
+            h_max_cal_k2.SetBinContent(i_col+1, i_row+1, i_cal_k2)
+            i_cal_k3 = u.get_max_cal(df_k3_icol_irow)
+            cut_k3.append(f"(col == {i_col} && row == {i_row} && cal == {i_cal_k3})")
+            h_max_cal_k3.SetBinContent(i_col+1, i_row+1, i_cal_k3)
+    print("Max Cal Maps")
+    c = ROOT.TCanvas()
+    h_max_cal_k2.Draw("TEXT")
+    c.Draw()
+    input("Press Enter...")
+    c = ROOT.TCanvas()
+    h_max_cal_k3.Draw("TEXT")
+    c.Draw()
+    input("Press Enter...")
+    cut_k2 = " || ".join(cut_k2)
+    cut_k3 = " || ".join(cut_k3)
+    df_k2 = df_k2.Filter(cut_k2)
+    df_k3 = df_k3.Filter(cut_k3)
 
     print("Define ToA and ToT columns")
     df_k2 = u.compute_ToA(df_k2)

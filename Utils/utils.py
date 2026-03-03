@@ -12,7 +12,7 @@ T3 = 3.125* ns
 T_WINDOW = 12.5 * ns
 
 
-def get_max_cal(df: ROOT.RDataFrame):
+def get_max_cal(df: ROOT.RDataFrame, col_name = "cal"):
     """
     Get the most repeated cal value in the dataframe
     Args:
@@ -20,7 +20,7 @@ def get_max_cal(df: ROOT.RDataFrame):
     Returns:
         max_cal: int
     """
-    hist = df.Histo1D(("cal", "cal", 1024, -0.5, 1023.5), "cal")
+    hist = df.Histo1D(("cal", "cal", 1024, -0.5, 1023.5), col_name)
     # -1 Added because the bin number starts at 1 and the cal value at 0
     max_cal = hist.GetMaximumBin()-1
     return max_cal
