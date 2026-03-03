@@ -4,7 +4,9 @@ import os
 from array import array
 from tqdm import tqdm
 
-MAX_8BIT = 2**8
+
+MAX_16BIT = 65536
+
 
 def create_array():
     """
@@ -28,7 +30,7 @@ def main(inputfiles):
         raise ValueError(f"Input file must have .sem extension and it has .{f.split('.')[-1]}")  
 
     run_dir = os.path.dirname(os.path.abspath(f))  
-    k_dir = os.path.basename(os.path.dirname(run_dir)) 
+    k_dir = os.path.basename(run_dir) 
     run_folder = os.path.basename(run_dir) 
 
     out_dir = os.path.join("Root_files", k_dir)
@@ -171,7 +173,7 @@ def main(inputfiles):
         if event_number == 0:
             events_at_reset += 1
         global_event_counter = events_at_reset + event_number
-        
+   
         if l1_counter_hw < previous_l1_hw:
             # print(f"Found reset in line {iline}, at previous l1 = {previous_l1_hw} and l1 counter= {l1_counter_hw}")
             # print(lines[iline])
@@ -220,6 +222,8 @@ def main(inputfiles):
                 variables['event_id_'][0]         = global_event_counter
                 # print(event_number, event_type, num_words, channel_h, l1_counter_hw, global_l1_counter, type_, bcid, channel_d, ea, col, row, toa, tot, cal, channel_t, status, hits, crc_t, num_hits, overflow_count, hamming_count, crc_et, global_event_counter)
                 hits_tree.Fill()
+
+
             except (ValueError, IndexError):
                 print("ERROR")
                 continue
@@ -232,6 +236,7 @@ def main(inputfiles):
         iline += 4 + i_data
         previous_event_number = event_number
         previous_l1_hw = l1_counter_hw
+  
             
             
     hits_tree.Write()
