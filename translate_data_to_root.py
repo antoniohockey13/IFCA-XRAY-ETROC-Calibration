@@ -115,6 +115,10 @@ def main(inputfiles):
                 # print(i_data)
             else:
                 data_line = False
+        # XXX - Keep only events with a single hit
+        if i_data != 1:
+            iline += 2
+            continue
 
         # print(lines[iline + 2 + i_data])
         # print(lines[iline + 3 + i_data])
