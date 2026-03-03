@@ -164,6 +164,39 @@ def ToA(df, title="", omit_plots=False):
     return hist
 
 
+def ToT_vs_ToA(df, title="", omit_plots=False):
+    """
+    Plot the ToT vs ToA of the ETROC in ns
+    
+    Args:
+        df (ROOT.RDataFrame): RDataFrame with the hits
+        title (str): Title of the plot. Default is ""
+        omit_plots (bool): If True, the plot will not be shown. Default is False
+    """
+    if "ToA" not in df.GetColumnNames():
+        df = u.compute_ToA(df)
+    if "ToT" not in df.GetColumnNames():
+        df = u.compute_ToA(df)
+    canvas = ROOT.TCanvas()
+    
+    # Compute histogram limits
+    min_toa, max_toa, bin_number_toa = u.get_ToA_histograms_limits(df.Mean("t_bin").GetValue(), size=14)
+    min_tot, max_tot, bin_number_tot = u.get_ToT_histograms_limits(df.Mean("t_bin").GetValue(), size=7)
+	# Plot histogram
+    hist = df.Histo2D(
+        ("ToT_ToA", f"", bin_number_toa, min_toa, max_toa, bin_number_tot, min_tot, max_tot), "ToA", "ToT"
+    )
+    hist.GetXaxis().SetTitle("ToA/ns")
+    hist.GetYaxis().SetTitle(f"ToT/ns")
+    hist.SetTitle(title)
+    hist.Draw("COLZ")
+
+    # Keep the canvas open until user input
+    if not omit_plots:
+        canvas.Update()
+        input("Press Enter to continue...")
+    return hist
+
 def fit_ToA_sin(df=None, toa_histogram=None, title=""):
     """
     Fit the ToA to a sinusoidal function
