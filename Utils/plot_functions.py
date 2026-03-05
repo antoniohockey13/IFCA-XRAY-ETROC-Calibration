@@ -16,20 +16,21 @@ colors = [
 # Not to compare plots                               #
 ######################################################
 
-def hit_map(df, title="", omit_plots=False):
+def hit_map(df, title="", omit_plots=False, kintex=""):
     """
     Plot the hit map of the ETROC. It is a matrix 16x16
     Args:
         df (ROOT.RDataFrame): RDataFrame with the hits
         title (str): Title of the plot. Default is ""
         omit_plots (bool): If True, the plot will not be shown. Default is False
+        kintex (str): String to add to col, row indicating which kintex to plot
     Returns:
         hit_map (ROOT.TH2F): Hit map histogram
         max_pixel (int): Pixel with the highest number of entries
     """
     c = ROOT.TCanvas()
     c.SetRightMargin(0.2) 
-    hit_map = df.Histo2D(("hit_map", "Hit map", 16, -0.5, 15.5, 16, -0.5, 15.5), "col", "row")
+    hit_map = df.Histo2D(("hit_map", "Hit map", 16, -0.5, 15.5, 16, -0.5, 15.5), f"col{kintex}", f"row{kintex}")
     hit_map.GetXaxis().SetTitle("Column")
     hit_map.GetYaxis().SetTitle("Row")
     hit_map.GetZaxis().SetTitle("Hits")

@@ -26,7 +26,7 @@ def main(k2, k3):
 
 
     # Compute max cal
-    print("Compute and filter by the mode of cal valuesi n eaxh pixel")
+    print("Compute and filter by the mode of cal values in eaxh pixel")
     h_max_cal_k2 = ROOT.TH2D(
         "h2_max_cal_k2",
         "Max CAL per pixel;col;row",
@@ -47,10 +47,10 @@ def main(k2, k3):
             df_k2_icol_irow = df_k2.Filter(f"col == {i_col} && row == {i_row}")
             df_k3_icol_irow = df_k3.Filter(f"col == {i_col} && row == {i_row}")
             i_cal_k2 = u.get_max_cal(df_k2_icol_irow)
-            cut_k2.append(f"(col == {i_col} && row == {i_row} && cal == {i_cal_k2})")
+            cut_k2.append(f"(col == {i_col} && row == {i_row} && abs(cal - {i_cal_k2})<1)")
             h_max_cal_k2.SetBinContent(i_col+1, i_row+1, i_cal_k2)
             i_cal_k3 = u.get_max_cal(df_k3_icol_irow)
-            cut_k3.append(f"(col == {i_col} && row == {i_row} && cal == {i_cal_k3})")
+            cut_k3.append(f"(col == {i_col} && row == {i_row} && abs(cal - {i_cal_k3})<1)")
             h_max_cal_k3.SetBinContent(i_col+1, i_row+1, i_cal_k3)
     print("Max Cal Maps")
     c = ROOT.TCanvas()
