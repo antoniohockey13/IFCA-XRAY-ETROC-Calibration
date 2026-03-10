@@ -309,8 +309,6 @@ def get_most_hit_pixel(df):
     biny_val = biny.value
     col, row = (binx_val - 1, biny_val - 1)  # Convert ROOT bins (1-based) to matrix indices (0-based)
     return col, row
-<<<<<<< HEAD
-=======
 
 def beam_center_from_gaussian(df, name="beam_center"):
 
@@ -358,4 +356,3 @@ def beam_center_from_gaussian(df, name="beam_center"):
     input("Press Enter to continue...")
 
     return mean_col, mean_row
->>>>>>> ec475d7 (Changes in 2ETROC correlation resolution scripts)
