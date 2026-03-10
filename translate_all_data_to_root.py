@@ -24,7 +24,7 @@ def sort_by_last_number(path: str) -> int:
 def make_tree():
 
     # Format of lines:
-    # EH version event_number hits_count num_words
+    # EH event_number version, hits_count num_words
     # H channel L1Counter Type BCID
     # D channel EA Row Col Toa Tot Cal
     # T channel status hits CRC
@@ -32,7 +32,8 @@ def make_tree():
     variables = {
         # EH
         "event_number": create_array(),
-        "event_type": create_array(),
+        "version": create_array(),
+        "hits_count": create_array(),
         "num_words": create_array(),
         # H
         "channel_h": create_array(),
@@ -59,6 +60,7 @@ def make_tree():
         "et_hamming_count": create_array(),
         "et_crc": create_array(),
 
+        "event_id_tot": create_array(),
         "event_id": create_array(),
     }
 
@@ -66,8 +68,6 @@ def make_tree():
     for name, arr in variables.items():
         tree.Branch(name, arr, f"{name}/I")
     return tree, variables
-
-
 
 
 @click.command()
@@ -78,25 +78,26 @@ def main(inputfiles):
     
     INPUTFILES: List of input files to process.
     """
-    # Create folder to save root files
-    os.makedirs("Root_files", exist_ok=True)
-
     f = inputfiles[0]
-    if f.split('.')[-1] != 'sem':
-        raise ValueError(f"Input file must have .sem extension and it has .{f.split('.')[-1]}")  
 
-    run_dir = os.path.dirname(os.path.abspath(f))  
-    k_dir = os.path.basename(os.path.dirname(run_dir)) 
-    run_folder = os.path.basename(run_dir) 
+    if not f.endswith(".sem"):
+        raise ValueError(
+            f"Input file must have .sem extension and it has {os.path.splitext(f)[1]}"
+        )
+
+    run_dir = os.path.dirname(os.path.abspath(f))
+    run_name = os.path.splitext(os.path.basename(f))[0]   
+    k_dir = os.path.basename(run_dir)                       
 
     out_dir = os.path.join("Root_files", k_dir)
     os.makedirs(out_dir, exist_ok=True)
-    out_path = os.path.join(out_dir, f"{run_folder}.root")
+
+    out_path = os.path.join(out_dir, f"{run_name}.root")
     hits = ROOT.TFile(out_path, "RECREATE")
 
     tree, variables = make_tree()
 
-    event_id = 0
+    event_id_tot = 0
     previous_hw_event = None
     overflow_counter = 0
     previous_l1 = None
@@ -140,17 +141,20 @@ def main(inputfiles):
             try:
                 parts = lines[iline].split()
                 hw_event = int(parts[1]) # 16-bit
-                event_type = int(parts[2])
-                num_words = int(parts[3])
+                version = int(parts[2])
+                hits_count = int(parts[3])
+                num_words = int(parts[4])
                 if previous_hw_event is not None:
                     if  hw_event <= previous_hw_event:
                         overflow_counter += 1
 
                 global_event_number = overflow_counter * MAX_16BIT + hw_event
-                print(f"[DEBUG] Parsed EH: hw_event={hw_event} event_type={event_type} num_words={num_words} global_event_number={global_event_number}, {overflow_counter}")
+                #print(f"[DEBUG] Parsed EH: hw_event={hw_event} event_type={event_type} num_words={num_words} global_event_number={global_event_number}, {overflow_counter}")
 
-                variables['event_number'][0] = global_event_number
-                variables['event_type'][0] = event_type
+                variables['event_number'][0] = hw_event
+                variables['event_id'][0] = global_event_number
+                variables['version'][0] = version
+                variables['hits_count'][0] = hits_count
                 variables['num_words'][0] = num_words
 
                 previous_hw_event = hw_event
@@ -177,12 +181,9 @@ def main(inputfiles):
             variables['channel_t'][0], variables['status'][0], variables['hits_t'][0], variables['crc'][0] = \
                     map(int, lines[j].split()[1:])
 
-            variables['event_id'][0] = event_id
-            event_id += 1
-
-            if event_id != global_event_number:
-                print(f"Warning: event_id {event_id} != global_event_number {global_event_number} at line {iline} in file {inputfile}")
-                input()
+            #if event_id != global_event_number:
+            #    print(f"Warning: event_id {event_id} != global_event_number {global_event_number} at line {iline} in file {inputfile}")
+            #    input()
 
 
             # Parse ET
@@ -201,7 +202,18 @@ def main(inputfiles):
                      variables['col'][0], variables['toa_code'][0],
                      variables['tot_code'][0], variables['cal'][0]) = \
                         map(int, d.split()[1:])
+                    variables['event_id_tot'][0] = event_id_tot
+                    event_id_tot += 1
 
+                    print(
+                        f"[DEBUG] entry={tree.GetEntries()} "
+                        f"event_id_tot={variables['event_id_tot'][0]} "
+                        f"event_number={variables['event_number'][0]} "
+                        f"event_id={variables['event_id'][0]} "
+                        f"hit(col,row)=({variables['col'][0]},{variables['row'][0]}) "
+                        f"toa={variables['toa_code'][0]} tot={variables['tot_code'][0]} cal={variables['cal'][0]}"
+                    )
+                    
                     tree.Fill()
 
                 except Exception:
@@ -217,7 +229,7 @@ def main(inputfiles):
     hits.Close()
 
     print(f"File saved in {out_path}")
-    print(f"Total reconstructed events: {event_id}")
+    print(f"Total reconstructed events: {event_id_tot}")
     print(f"Last global event number: {global_event_number}")
     print(f"Last L1 counter value: {l1_global}")
 

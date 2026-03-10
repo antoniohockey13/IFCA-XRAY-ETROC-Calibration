@@ -1,5 +1,6 @@
 import ROOT
 import numpy as np
+import os
 
 from . import utils as u
 
@@ -80,6 +81,24 @@ def plot_cal(df, color = ROOT.kBlack, title="", omit_plots=False):
 
     return hist.GetValue()
 
+def plot_cal_1d(df, name, outdir, fout=None):
+    u.ensure_outdir(outdir)
+
+    xmin, xmax, nbins = u.get_cal_histogram_limits(df)
+
+    c_cal = ROOT.TCanvas(f"c_cal_{name}")
+    hcal_ptr = df.Histo1D((f"hcal_{name}", ";cal;Counts", nbins, xmin, xmax), "cal")
+    hcal = hcal_ptr.GetValue()
+    hcal.SetDirectory(0)
+    hcal.Draw("HIST")
+    c_cal.Update()
+
+    input("Press Enter to continue...")
+    out = os.path.join(outdir, f"cal_{name}.png")
+    c_cal.SaveAs(out)
+    u.write_to_fout(fout, hcal, c_cal)
+    return out
+
 def ToT(df, size=7, title="", omit_plots = False):
     """
     Plot the ToT of the ETROC in ns
@@ -111,6 +130,26 @@ def ToT(df, size=7, title="", omit_plots = False):
     if not omit_plots:
         input("Press Enter to continue...")  
     return hist
+
+def plot_tot_1d(df, name, outdir, fout=None):
+    u.ensure_outdir(outdir)
+
+    tbin_mean = df.Mean("t_bin").GetValue()
+    xmin, xmax, nbins = u.get_ToT_histograms_limits(tbin_mean)
+
+    c_tot = ROOT.TCanvas(f"c_tot_{name}")
+    htot_ptr = df.Histo1D((f"htot_{name}", ";ToT [ns];Counts", nbins, xmin, xmax),"ToT")
+
+    htot = htot_ptr.GetValue()
+    htot.SetDirectory(0)
+    htot.Draw("HIST")
+    c_tot.Update()
+
+    input("Press Enter to continue...")
+    out = os.path.join(outdir, f"ToT_1D_{name}.png")
+    c_tot.SaveAs(out)
+    u.write_to_fout(fout, htot, c_tot)
+    return out
 
 def ToT_CODE(df, title=""):
     """
@@ -164,6 +203,24 @@ def ToA(df, title="", omit_plots=False):
         input("Press Enter to continue...")
     return hist
 
+def plot_toa_1d(df, name, outdir, fout=None):
+    u.ensure_outdir(outdir)
+
+    tbin_mean = df.Mean("t_bin").GetValue()
+    xmin, xmax, nbins = u.get_ToA_histograms_limits(tbin_mean)
+
+    c_toa = ROOT.TCanvas(f"c_toa_{name}")
+    htoa_ptr = df.Histo1D((f"htoa_{name}", ";ToA [ns];Counts", nbins, xmin, xmax), "ToA")
+    htoa = htoa_ptr.GetValue()
+    htoa.SetDirectory(0)
+    htoa.Draw("HIST")
+    c_toa.Update()
+
+    input("Press Enter to continue...")
+    out = os.path.join(outdir, f"ToA_1D_{name}.png")
+    c_toa.SaveAs(out)
+    u.write_to_fout(fout, htoa, c_toa)
+    return out
 
 def ToT_vs_ToA(df, title="", omit_plots=False):
     """
@@ -177,7 +234,7 @@ def ToT_vs_ToA(df, title="", omit_plots=False):
     if "ToA" not in df.GetColumnNames():
         df = u.compute_ToA(df)
     if "ToT" not in df.GetColumnNames():
-        df = u.compute_ToA(df)
+        df = u.compute_ToT(df)
     canvas = ROOT.TCanvas()
     
     # Compute histogram limits
@@ -197,6 +254,46 @@ def ToT_vs_ToA(df, title="", omit_plots=False):
         canvas.Update()
         input("Press Enter to continue...")
     return hist
+
+def plot_ToA_vs_CAL(df, name, outdir, fout=None):
+    u.ensure_outdir(outdir)
+
+    tbin_mean = df.Mean("t_bin").GetValue()
+    xmin_toa, xmax_toa, nbins_toa = u.get_ToA_histograms_limits(tbin_mean)
+    xmin_cal, xmax_cal, nbins_cal = u.get_cal_histogram_limits(df)
+
+    c = ROOT.TCanvas(f"c_toa_vs_cal_{name}")
+    h2_ptr = df.Histo2D((f"h2_toa_vs_cal_{name}",";ToA [ns];cal", nbins_toa, xmin_toa, xmax_toa, nbins_cal, xmin_cal, xmax_cal), "ToA", "cal")
+    h2 = h2_ptr.GetValue()
+    h2.SetDirectory(0)
+    h2.Draw("COLZ")
+    c.Update()
+
+    input("Press Enter to continue...")
+    out = os.path.join(outdir, f"ToA_vs_cal_{name}.png")
+    c.SaveAs(out)
+    u.write_to_fout(fout, h2, c)
+    return out
+
+def plot_toa_vs_tot(df, name, outdir, fout=None):
+    u.ensure_outdir(outdir)
+
+    tbin_mean = df.Mean("t_bin").GetValue()
+    xmin_toa, xmax_toa, nbins_toa = u.get_ToA_histograms_limits(tbin_mean)
+    xmin_tot, xmax_tot, nbins_tot = u.get_ToT_histograms_limits(tbin_mean)
+
+    c_tot = ROOT.TCanvas(f"c_toa_vs_tot_{name}")
+    h2_ptr = df.Histo2D((f"h2_toa_vs_tot_{name}", ";ToA [ns];ToT [ns]", nbins_toa, xmin_toa, xmax_toa, nbins_tot, xmin_tot, xmax_tot),"ToA", "ToT")
+    h2_tot = h2_ptr.GetValue()
+    h2_tot.SetDirectory(0)
+    h2_tot.Draw("COLZ")
+    c_tot.Update()
+
+    input("Press Enter to continue...")
+    out = os.path.join(outdir, f"ToA_vs_ToT_{name}.png")
+    c_tot.SaveAs(out)
+    u.write_to_fout(fout, h2_tot, c_tot)
+    return out
 
 def fit_ToA_sin(df=None, toa_histogram=None, title=""):
     """
